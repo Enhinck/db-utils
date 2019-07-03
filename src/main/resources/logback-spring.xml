@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration>
+    <!-- date demo-->
+    <timestamp key="byDay" datePattern="yyyyMMdd" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-5level [%thread]: %message %logger{30} [%file:%line]%n
+            </pattern>
+        </encoder>
+    </appender>
+    <!-- Rolling fileoutput -->
+     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/enhinck-all-${byDay}.log</file>
+        <encoder>
+            <pattern>%date %level [%thread] %msg %logger{30} [%file:%line]%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>logs/enhinck.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+    <logger name="org.hibernate.tool.hbm2ddl" level="INFO" />
+    <!-- root level -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
