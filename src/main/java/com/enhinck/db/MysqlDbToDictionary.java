@@ -34,7 +34,7 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        final Database oldDB = getDatabse(OLD);
+        final Database oldDB = getDatabse(NEW);
         Connection oldDBConnection = oldDB.getConnection();
         log.info("数据库已连接成功：{}", oldDB.getUrl());
         db2Dictionary(oldDBConnection);
@@ -51,10 +51,138 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
         List<InformationSchemaTables> oldTableNameSets = MysqlDbUtil.getTables(oldDbConnection);
         ExcelFile excelFile = new ExcelFile();
         excelFile.setDocFileName("数据字典.docx");
+        tables2ExcelSheets(oldDbConnection, excelFile, oldTableNameSets);
+        CommonExcelWriteUtil.write(excelFile);
+        CommonWordWriteUtil.write(excelFile);
+    }
+
+
+    /**
+     * 数据字典
+     *
+     * @param oldDbConnection
+     * @return
+     */
+    public static void db2Dictionary(final Connection oldDbConnection, List<String> tableNames) {
+        ExcelFile excelFile = new ExcelFile();
+        excelFile.setDocFileName("G:\\DOC\\增量表.docx");
+        excelFile.setFileName("G:\\DOC\\增量表.xlsx");
+        for (String tableName : tableNames) {
+            List<InformationSchemaTables> oldTableNameSets = MysqlDbUtil.getTables(oldDbConnection, tableName);
+            tables2ExcelSheets(oldDbConnection, excelFile, oldTableNameSets);
+        }
+        CommonExcelWriteUtil.write(excelFile);
+        CommonWordWriteUtil.write(excelFile);
+    }
+
+
+    private static void addTitle(ExcelSheet excelSheet) {
+        ExcelRow excelRow = new ExcelRow();
+        excelRow.AddCell(new ExcelCell("字段名"));
+        excelRow.AddCell(new ExcelCell("字段类型"));
+        excelRow.AddCell(new ExcelCell("是否必填"));
+        excelRow.AddCell(new ExcelCell("描述"));
+        excelSheet.AddRow(excelRow);
+    }
+
+    private static void addCompareTitle(ExcelSheet excelSheet) {
+        ExcelRow excelRow = new ExcelRow();
+        excelRow.AddCell(new ExcelCell("原字段名"));
+        excelRow.AddCell(new ExcelCell("原字段类型"));
+        excelRow.AddCell(new ExcelCell("原是否必填"));
+        excelRow.AddCell(new ExcelCell("原描述"));
+        excelRow.AddCell(new ExcelCell("新字段名"));
+        excelRow.AddCell(new ExcelCell("新字段类型"));
+        excelRow.AddCell(new ExcelCell("新是否必填"));
+        excelRow.AddCell(new ExcelCell("新描述"));
+        excelSheet.AddRow(excelRow);
+    }
+
+
+    public static void toOneVersionSummaryDoc(final Connection newDbConnection, OneVersionModifySummary oneVersionModifySummary) {
+        ExcelFile excelFile = new ExcelFile();
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String fileName = simpleDateFormat.format(new Date());
+        excelFile.setDocFileName("G:\\DOC\\"+fileName+"summary.docx");
+        excelFile.setFileName("G:\\DOC\\"+fileName+"summary.xlsx");
+        List<InformationSchemaTables> oldTableNameSets = oneVersionModifySummary.getAddTable();
+        // 新增表
+        tables2ExcelSheets(newDbConnection, excelFile, oldTableNameSets);
+        // 新增字段
+        tablesAdds2ExcelSheets(oneVersionModifySummary, excelFile);
+        // 修改字段
+        tablesModifys2ExcelSheets(oneVersionModifySummary, excelFile);
+
+        //   CommonExcelWriteUtil.write(excelFile);
+        CommonWordWriteUtil.write(excelFile);
+    }
+
+    public static void tablesModifys2ExcelSheets(OneVersionModifySummary oneVersionModifySummary, ExcelFile excelFile) {
+        Map<String, List<MapDifference.ValueDifference<InformationSchemaColumns>>> modifys = oneVersionModifySummary.getModifys();
+        modifys.forEach((key, value) -> {
+            if (value.size() > 0) {
+                ExcelSheet excelSheet = new ExcelSheet(key + "(modify)");
+                if (oneVersionModifySummary.getMap().get(key) != null) {
+                    excelSheet.setComment(oneVersionModifySummary.getMap().get(key).getTableComment());
+                }
+                int count = 0;
+                for (MapDifference.ValueDifference<InformationSchemaColumns> difference : value) {
+                    if (count == 0) {
+                        addCompareTitle(excelSheet);
+                    }
+                    ExcelRow excelRow = new ExcelRow();
+                    excelRow.AddCell(new ExcelCell(difference.leftValue().getColumnName()));
+                    excelRow.AddCell(new ExcelCell(difference.leftValue().getColumnType()));
+                    excelRow.AddCell(new ExcelCell(difference.leftValue().excelCanNo()));
+                    excelRow.AddCell(new ExcelCell(difference.leftValue().getColumnComment()));
+                    excelRow.AddCell(new ExcelCell(difference.rightValue().getColumnName()));
+                    excelRow.AddCell(new ExcelCell(difference.rightValue().getColumnType()));
+                    excelRow.AddCell(new ExcelCell(difference.rightValue().excelCanNo()));
+                    excelRow.AddCell(new ExcelCell(difference.rightValue().getColumnComment()));
+                    excelSheet.AddRow(excelRow);
+                    count++;
+                }
+                excelFile.AddSheet(excelSheet);
+            }
+        });
+    }
+
+
+    private static void tablesAdds2ExcelSheets(OneVersionModifySummary oneVersionModifySummary, ExcelFile excelFile) {
+        Map<String, List<InformationSchemaColumns>> adds = oneVersionModifySummary.getAdds();
+        adds.forEach((key, value) -> {
+            if (value.size() > 0) {
+                ExcelSheet excelSheet = new ExcelSheet(key + "(add)");
+                if (oneVersionModifySummary.getMap().get(key) != null) {
+                    excelSheet.setComment(oneVersionModifySummary.getMap().get(key).getTableComment());
+                }
+                int count = 0;
+                for (InformationSchemaColumns informationSchemaColumns : value) {
+                    if (count == 0) {
+                        addTitle(excelSheet);
+                    }
+                    ExcelRow excelRow = new ExcelRow();
+                    excelRow.AddCell(new ExcelCell(informationSchemaColumns.getColumnName()));
+                    excelRow.AddCell(new ExcelCell(informationSchemaColumns.getColumnType()));
+                    excelRow.AddCell(new ExcelCell(informationSchemaColumns.excelCanNo()));
+                    excelRow.AddCell(new ExcelCell(informationSchemaColumns.getColumnComment()));
+                    excelSheet.AddRow(excelRow);
+                    count++;
+                }
+                excelFile.AddSheet(excelSheet);
+            }
+        });
+
+
+    }
+
+
+    private static void tables2ExcelSheets(Connection newDbConnection, ExcelFile excelFile, List<InformationSchemaTables> oldTableNameSets) {
         oldTableNameSets.forEach(table -> {
             ExcelSheet excelSheet = new ExcelSheet(table.getTableName());
             excelSheet.setComment(table.getTableComment());
-            Map<String, InformationSchemaColumns> oldMap = MysqlDbUtil.getColumnsByTableName(table.getTableName(), oldDbConnection);
+            Map<String, InformationSchemaColumns> oldMap = MysqlDbUtil.getColumnsByTableName(table.getTableName(), newDbConnection);
             int count = 0;
             for (Map.Entry<String, InformationSchemaColumns> entry : oldMap.entrySet()) {
                 if (count == 0) {
@@ -71,17 +199,6 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
             }
             excelFile.AddSheet(excelSheet);
         });
-        CommonExcelWriteUtil.write(excelFile);
-        CommonWordWriteUtil.write(excelFile);
-    }
-
-    private static void addTitle(ExcelSheet excelSheet) {
-        ExcelRow excelRow = new ExcelRow();
-        excelRow.AddCell(new ExcelCell("字段名"));
-        excelRow.AddCell(new ExcelCell("字段类型"));
-        excelRow.AddCell(new ExcelCell("是否必填"));
-        excelRow.AddCell(new ExcelCell("描述"));
-        excelSheet.AddRow(excelRow);
     }
 
 

@@ -16,6 +16,9 @@ public class CommonWordWriteUtil {
 
 
     public static void write(ExcelFile excelFile) {
+        if (!excelFile.hasContent()) {
+            return;
+        }
         XWPFDocument document = createDocument();
         List<ExcelSheet> sheets = excelFile.getSheets();
         if (sheets.size() > 0) {
@@ -24,27 +27,43 @@ public class CommonWordWriteUtil {
                 // 标题
                 XWPFParagraph tableTitle = document.createParagraph();
                 XWPFRun title1Run = tableTitle.createRun();
-                title1Run.setText(sheet.getComment() + " "+ sheet.getSheetName());
-                title1Run.setFontSize(20);
+                title1Run.setText(sheet.getSheetName()+"("+sheet.getComment()+")");
+                title1Run.setFontSize(15);
                 title1Run.setBold(true);
                 List<ExcelRow> excelRows = sheet.getExcelRows();
-                // 表格
-                XWPFTable tab = document.createTable(excelRows.size(), 4);
-                tab.getRow(0).getCell(0).setColor("87CEFA");
-                tab.getRow(0).getCell(1).setColor("87CEFA");
-                tab.getRow(0).getCell(2).setColor("87CEFA");
-                tab.getRow(0).getCell(3).setColor("87CEFA");
-                for (int j = 0; j < excelRows.size(); j++) {
-                    ExcelRow excelRow = excelRows.get(j);
-                    List<ExcelCell> cells = excelRow.getCells();
+                if (excelRows.size() > 0) {
+                    ExcelRow row = excelRows.get(0);
+                    int width = row.getCells().size();
+                    // 表格
+                    XWPFTable tab = document.createTable(excelRows.size(), width);
 
-                    tab.getRow(j).getCell(0).setText(cells.get(0).getColumnValue().toString());
-                    tab.getRow(j).getCell(1).setText(cells.get(1).getColumnValue().toString());
-                    tab.getRow(j).getCell(2).setText(cells.get(2).getColumnValue().toString());
-                    tab.getRow(j).getCell(3).setText(cells.get(3).getColumnValue().toString());
+
+                    if (width <= 4) {
+                        for (int x = 0; x < width; x++) {
+                            tab.getRow(0).getCell(x).setColor("87CEFA");
+                        }
+                    }else {
+                        for (int x = 0; x < width; x++) {
+                            if (x <= 3) {
+                                tab.getRow(0).getCell(x).setColor("FFFF00");
+                            } else {
+                                tab.getRow(0).getCell(x).setColor("87CEFA");
+                            }
+                        }
+                    }
+
+
+                    for (int j = 0; j < excelRows.size(); j++) {
+                        ExcelRow excelRow = excelRows.get(j);
+                        List<ExcelCell> cells = excelRow.getCells();
+
+                        for (int k = 0; k < cells.size(); k++) {
+                            tab.getRow(j).getCell(k).setText(cells.get(k).getColumnValue().toString());
+                        }
+                    }
+                    XWPFParagraph blank = document.createParagraph();
+                    XWPFRun blankRun = blank.createRun();
                 }
-                XWPFParagraph blank = document.createParagraph();
-                XWPFRun blankRun = blank.createRun();
             }
         }
         try {

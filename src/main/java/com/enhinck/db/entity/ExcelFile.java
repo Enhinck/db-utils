@@ -16,6 +16,10 @@ public class ExcelFile {
         fileName = "demo.xlsx";
     }
 
+    public boolean hasContent(){
+       return sheets.size()>0&&sheets.get(0)!=null&&sheets.get(0).getExcelRows().size()!=0;
+    }
+
     public ExcelFile(String fileName) {
         this.fileName = fileName;
     }

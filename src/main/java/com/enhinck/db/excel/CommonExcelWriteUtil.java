@@ -8,12 +8,8 @@ import com.enhinck.db.entity.ExcelSheet;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.awt.*;
-import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
@@ -44,6 +40,10 @@ public class CommonExcelWriteUtil {
     }
 
     public static void write(ExcelFile excelFile) {
+        if (!excelFile.hasContent()){
+            return;
+        }
+
         try {
             String path = excelFile.getFilePath();
             // 生成路径
@@ -112,6 +112,10 @@ public class CommonExcelWriteUtil {
         sheet.setColumnWidth(1, 5000);
         sheet.setColumnWidth(2, 2000);
         sheet.setColumnWidth(3, 60*256);
+        sheet.setColumnWidth(4, 60*256);
+        sheet.setColumnWidth(5, 60*256);
+        sheet.setColumnWidth(6, 60*256);
+        sheet.setColumnWidth(7, 60*256);
         sheet.autoSizeColumn(1);
     }
 

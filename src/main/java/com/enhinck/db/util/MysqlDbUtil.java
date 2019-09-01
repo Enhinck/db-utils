@@ -130,4 +130,26 @@ public class MysqlDbUtil {
     }
 
 
+    public static List<InformationSchemaTables> getTables(Connection con, String tableName) {
+        String tableSchema = currentDatabase(con);
+        List<InformationSchemaTables> tables = new ArrayList<>();
+        SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").andEqualTo("tableName",tableName).orderByAsc("create_time");
+        String sql = SqlUtil.getSelectSql(InformationSchemaTables.class, sqls.build());
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = con.prepareStatement(sql);
+            sqls.setParams(pstmt);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                InformationSchemaTables informationSchemaTables = SqlUtil.getDbData(InformationSchemaTables.class, rs);
+                tables.add(informationSchemaTables);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.releaseConnection(null, pstmt, rs);
+        }
+        return tables;
+    }
 }

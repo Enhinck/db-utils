@@ -1,7 +1,9 @@
 package com.enhinck.db;
 
-import com.enhinck.db.entity.InformationSchemaColumns;
+import com.enhinck.db.entity.*;
+import com.enhinck.db.excel.CommonExcelWriteUtil;
 import com.enhinck.db.util.*;
+import com.enhinck.db.word.CommonWordWriteUtil;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -63,22 +65,28 @@ public class MysqlDbCompare {
         log.info("数据库已连接成功,被升级库：{},目标库{}", oldDB.getUrl(), newDb.getUrl());
         StringBuilder stringBuilder = new StringBuilder();
         log.info("开始生成增量表建表语句...");
+        OneVersionModifySummary oneVersionModifySummary = new OneVersionModifySummary();
+
         // 增量表语句
-        String tableCreates = compareTableNames(oldDBConnection, newDbConnection);
+        String tableCreates = compareTableNames(oldDBConnection, newDbConnection, oneVersionModifySummary);
         log.info("开始生成表字段新增和修改语句...");
         // 表字段新增和修改
-        String columnsAddModify = compareTableColumns(oldDBConnection, newDbConnection);
+        String columnsAddModify = compareTableColumns(oldDBConnection, newDbConnection, oneVersionModifySummary);
 
-        List<String> list =  getSyncTables();
+        List<String> list = getSyncTables();
 
         // 关键配置数据同步
-        String dataAddModify =  compareTableDatas(list,oldDBConnection, newDbConnection);
+        String dataAddModify = compareTableDatas(list, oldDBConnection, newDbConnection);
 
         // 合成脚本内容
         stringBuilder.append(tableCreates).append(columnsAddModify);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String fileName = simpleDateFormat.format(new Date()) + "数据库更新脚本.sql";
         FileUtils.write(new File(fileName), stringBuilder.toString(), "UTF-8");
+
+
+        MysqlDbToDictionary.toOneVersionSummaryDoc(newDbConnection, oneVersionModifySummary);
+
         log.info("升级脚本已生成:{}", fileName);
     }
 
@@ -99,19 +107,34 @@ public class MysqlDbCompare {
      * @param oldDbConnection 需要升级的库
      * @param newDBConnection 已升级的库
      */
-    public static String compareTableNames(final Connection oldDbConnection, final Connection newDBConnection) {
+    public static String compareTableNames(final Connection oldDbConnection, final Connection newDBConnection, OneVersionModifySummary oneVersionModifySummary) {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("-- 新增的表开始").append(NEW_LINE);
-        Set<String> oldTableNameSets = MysqlDbUtil.getTablesSet(oldDbConnection);
-        Set<String> newTableNameSets = MysqlDbUtil.getTablesSet(newDBConnection);
+
+        List<InformationSchemaTables> oldTables = MysqlDbUtil.getTables(oldDbConnection);
+        Set<String> oldTableNameSets = new HashSet<>();
+        oldTables.forEach(table -> {
+            oldTableNameSets.add(table.getTableName());
+        });
+
+        List<InformationSchemaTables> newTables = MysqlDbUtil.getTables(newDBConnection);
+        Set<String> newTableNameSets = new HashSet<>();
+        newTables.forEach(table -> {
+            newTableNameSets.add(table.getTableName());
+            oneVersionModifySummary.getMap().put(table.getTableName(), table);
+        });
+
         newTableNameSets.removeAll(oldTableNameSets);
         // 增量表
         Set<String> addTableNameSets = newTableNameSets;
         addTableNameSets.forEach(tableName -> {
             String tableDDL = MysqlDbUtil.getTableDDL(tableName, newDBConnection);
             stringBuilder.append(tableDDL).append(END_SQL).append(NEW_LINE);
+            //  tables.add(tableName);
+            oneVersionModifySummary.getAddTable().add(oneVersionModifySummary.getMap().get(tableName));
         });
         stringBuilder.append("-- 新增的表开始结束").append(NEW_LINE);
+        // 增量表数据字典
 
         return stringBuilder.toString();
     }
@@ -132,7 +155,7 @@ public class MysqlDbCompare {
      * @param newDBConnection
      * @return
      */
-    public static String compareTableColumns(final Connection oldDbConnection, final Connection newDBConnection) {
+    public static String compareTableColumns(final Connection oldDbConnection, final Connection newDBConnection, OneVersionModifySummary oneVersionModifySummary) {
         final StringBuilder stringBuilder = new StringBuilder();
         Set<String> oldTableNameSets = MysqlDbUtil.getTablesSet(oldDbConnection);
         //sql格式  ADD COLUMN column column_type is_null default_value extra comment
@@ -144,10 +167,10 @@ public class MysqlDbCompare {
             MapDifference<String, InformationSchemaColumns> difference = Maps.difference(oldMap, newMap);
 
             // 新增字段脚本
-            AddColumns(stringBuilder, tableName, newMap, difference);
+            AddColumns(stringBuilder, tableName, newMap, difference, oneVersionModifySummary);
 
             // 修改字段脚本
-            ModifyColumns(stringBuilder, tableName, newMap, difference);
+            ModifyColumns(stringBuilder, tableName, newMap, difference, oneVersionModifySummary);
 
             // 删除字段
             deleteColumns(stringBuilder, tableName, newMap, difference);
@@ -159,7 +182,9 @@ public class MysqlDbCompare {
     }
 
 
-    private static void AddColumns(StringBuilder stringBuilder, String tableName, Map<String, InformationSchemaColumns> newMap, MapDifference<String, InformationSchemaColumns> difference) {
+    private static void AddColumns(StringBuilder stringBuilder, String tableName, Map<String, InformationSchemaColumns> newMap, MapDifference<String, InformationSchemaColumns> difference, OneVersionModifySummary oneVersionModifySummary) {
+
+        List<InformationSchemaColumns> adds = new ArrayList<>();
         if (difference.entriesOnlyOnRight().size() != 0) {
             stringBuilder.append("-- 新增的字段开始").append(NEW_LINE);
             // 新建字段
@@ -181,19 +206,24 @@ public class MysqlDbCompare {
                     stringBuilder.append(EMPTY_SPACE).append(AFTER).append(columnName);
                 }
                 stringBuilder.append(",");
+
+                adds.add(addColumns);
             });
             stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
             stringBuilder.append(END_SQL).append(NEW_LINE);
             stringBuilder.append("-- 新增的字段结束").append(NEW_LINE);
         }
+        oneVersionModifySummary.getAdds().put(tableName, adds);
     }
 
-    private static void ModifyColumns(StringBuilder stringBuilder, String tableName, Map<String, InformationSchemaColumns> newMap, MapDifference<String, InformationSchemaColumns> difference) {
+    private static void ModifyColumns(StringBuilder stringBuilder, String tableName, Map<String, InformationSchemaColumns> newMap, MapDifference<String, InformationSchemaColumns> difference, OneVersionModifySummary oneVersionModifySummary) {
+        List<MapDifference.ValueDifference<InformationSchemaColumns>> differences = new ArrayList<>();
         if (difference.entriesDiffering().size() != 0) {
             // 修改字段
             stringBuilder.append("-- 修改字段开始").append(NEW_LINE);
             stringBuilder.append(ALTER_TABLE).append(tableName);
             difference.entriesDiffering().forEach((key, diff) -> {
+                differences.add(diff);
                 InformationSchemaColumns updateColumns = diff.rightValue();
                 BigInteger bigInteger = updateColumns.getOrdinalPosition();
                 int ordinalPosition = bigInteger.intValue() - 1;
@@ -215,6 +245,8 @@ public class MysqlDbCompare {
             stringBuilder.append(END_SQL).append(NEW_LINE);
             stringBuilder.append("-- 修改字段结束").append(NEW_LINE);
         }
+
+        oneVersionModifySummary.getModifys().put(tableName, differences);
     }
 
     private static void deleteColumns(StringBuilder stringBuilder, String tableName, Map<String, InformationSchemaColumns> newMap, MapDifference<String, InformationSchemaColumns> difference) {
