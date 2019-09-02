@@ -13,11 +13,13 @@ public class ExcelFile {
     private List<ExcelSheet> sheets = new ArrayList<>();
 
     public ExcelFile() {
-        fileName = "demo.xlsx";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String date = simpleDateFormat.format(new Date())
+        fileName = date + ".xlsx";
     }
 
-    public boolean hasContent(){
-       return sheets.size()>0&&sheets.get(0)!=null&&sheets.get(0).getExcelRows().size()!=0;
+    public boolean hasContent() {
+        return sheets.size() > 0 && sheets.get(0) != null && sheets.get(0).getExcelRows().size() != 0;
     }
 
     public ExcelFile(String fileName) {

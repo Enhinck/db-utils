@@ -14,7 +14,6 @@ import java.util.List;
 @Slf4j
 public class CommonWordWriteUtil {
 
-
     public static void write(ExcelFile excelFile) {
         if (!excelFile.hasContent()) {
             return;
@@ -27,7 +26,7 @@ public class CommonWordWriteUtil {
                 // 标题
                 XWPFParagraph tableTitle = document.createParagraph();
                 XWPFRun title1Run = tableTitle.createRun();
-                title1Run.setText(sheet.getSheetName()+"("+sheet.getComment()+")");
+                title1Run.setText(sheet.getSheetName() + "(" + sheet.getComment() + ")");
                 title1Run.setFontSize(15);
                 title1Run.setBold(true);
                 List<ExcelRow> excelRows = sheet.getExcelRows();
@@ -37,12 +36,11 @@ public class CommonWordWriteUtil {
                     // 表格
                     XWPFTable tab = document.createTable(excelRows.size(), width);
 
-
                     if (width <= 4) {
                         for (int x = 0; x < width; x++) {
                             tab.getRow(0).getCell(x).setColor("87CEFA");
                         }
-                    }else {
+                    } else {
                         for (int x = 0; x < width; x++) {
                             if (x <= 3) {
                                 tab.getRow(0).getCell(x).setColor("FFFF00");
@@ -51,7 +49,6 @@ public class CommonWordWriteUtil {
                             }
                         }
                     }
-
 
                     for (int j = 0; j < excelRows.size(); j++) {
                         ExcelRow excelRow = excelRows.get(j);
@@ -78,7 +75,6 @@ public class CommonWordWriteUtil {
      * 创建一个word对象
      *
      * @return
-     * @Author Huangxiaocong 2018年12月1日 上午11:56:35
      */
     public static XWPFDocument createDocument() {
         XWPFDocument document = new XWPFDocument();
@@ -91,7 +87,6 @@ public class CommonWordWriteUtil {
      * @param path 文档所在路径
      * @return
      * @throws IOException
-     * @Author Huangxiaocong 2018年12月1日 下午12:30:07
      */
     public static XWPFDocument openDoc(String path) throws IOException {
         InputStream is = new FileInputStream(path);
@@ -104,7 +99,6 @@ public class CommonWordWriteUtil {
      * @param document 文档对象
      * @param savePath 保存路径
      * @throws IOException
-     * @Author Huangxiaocong 2018年12月1日 下午12:32:37
      */
     public static void saveDocument(XWPFDocument document, String savePath) throws IOException {
         OutputStream os = new FileOutputStream(savePath);
@@ -118,7 +112,6 @@ public class CommonWordWriteUtil {
      *
      * @param targetTable
      * @param sourceTable
-     * @Author Huangxiaocong 2018年12月1日 下午1:40:01
      */
     public static void copyTable(XWPFTable targetTable, XWPFTable sourceTable) {
         //复制表格属性
@@ -140,7 +133,6 @@ public class CommonWordWriteUtil {
      *
      * @param targetRow
      * @param sourceRow
-     * @Author Huangxiaocong 2018年12月1日 下午1:33:22
      */
     public static void copyTableRow(XWPFTableRow targetRow, XWPFTableRow sourceRow) {
         //复制样式
@@ -163,7 +155,6 @@ public class CommonWordWriteUtil {
      *
      * @param targetCell
      * @param sourceCell
-     * @Author Huangxiaocong 2018年12月1日 下午1:27:38
      */
     public static void copyTableCell(XWPFTableCell targetCell, XWPFTableCell sourceCell) {
         //表格属性
@@ -186,7 +177,6 @@ public class CommonWordWriteUtil {
      *
      * @param targetParag
      * @param sourceParag
-     * @Author Huangxiaocong 2018年12月1日 下午1:16:26
      */
     public static void copyParagraph(XWPFParagraph targetParag, XWPFParagraph sourceParag) {
         //设置段落样式
@@ -207,7 +197,6 @@ public class CommonWordWriteUtil {
      *
      * @param targetRun
      * @param sourceRun
-     * @Author Huangxiaocong 2018年12月1日 下午12:56:53
      */
     public static void copyRun(XWPFRun targetRun, XWPFRun sourceRun) {
         //设置targetRun属性
@@ -234,7 +223,6 @@ public class CommonWordWriteUtil {
      * @param sourcePicture
      * @throws IOException
      * @throws InvalidFormatException
-     * @Author Huangxiaocong 2018年12月1日 下午12:57:33
      */
     public static void copyPicture(XWPFRun targetRun, XWPFPicture sourcePicture) throws InvalidFormatException, IOException {
         XWPFPictureData picData = sourcePicture.getPictureData();
