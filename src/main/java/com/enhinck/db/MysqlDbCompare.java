@@ -92,6 +92,14 @@ public class MysqlDbCompare {
 
     private static String compareTableDatas(List<String> list, Connection oldDBConnection, Connection newDbConnection) {
 
+        for (int i = 0; i < list.size(); i++) {
+            String tableName = list.get(0);
+            MysqlDbUtil.getTableDatas(oldDBConnection, tableName);
+
+            MysqlDbUtil.getTableDatas(newDbConnection, tableName);
+        }
+
+
         // 增量
 
         // 修改

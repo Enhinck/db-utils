@@ -3,10 +3,7 @@ package com.enhinck.db.util;
 import com.enhinck.db.entity.InformationSchemaColumns;
 import com.enhinck.db.entity.InformationSchemaTables;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class MysqlDbUtil {
@@ -111,21 +108,7 @@ public class MysqlDbUtil {
         List<InformationSchemaTables> tables = new ArrayList<>();
         SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").orderByAsc("create_time");
         String sql = SqlUtil.getSelectSql(InformationSchemaTables.class, sqls.build());
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            pstmt = con.prepareStatement(sql);
-            sqls.setParams(pstmt);
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                InformationSchemaTables informationSchemaTables = SqlUtil.getDbData(InformationSchemaTables.class, rs);
-                tables.add(informationSchemaTables);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            JDBCUtil.releaseConnection(null, pstmt, rs);
-        }
+        getTables(con, tables, sqls, sql);
         return tables;
     }
 
@@ -133,8 +116,14 @@ public class MysqlDbUtil {
     public static List<InformationSchemaTables> getTables(Connection con, String tableName) {
         String tableSchema = currentDatabase(con);
         List<InformationSchemaTables> tables = new ArrayList<>();
-        SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").andEqualTo("tableName",tableName).orderByAsc("create_time");
+        SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").andEqualTo("tableName", tableName).orderByAsc("create_time");
         String sql = SqlUtil.getSelectSql(InformationSchemaTables.class, sqls.build());
+
+        getTables(con, tables, sqls, sql);
+        return tables;
+    }
+
+    private static void getTables(Connection con, List<InformationSchemaTables> tables, SqlUtil.Sqls sqls, String sql) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -150,6 +139,32 @@ public class MysqlDbUtil {
         } finally {
             JDBCUtil.releaseConnection(null, pstmt, rs);
         }
-        return tables;
     }
+
+
+    public static List<Object> getTableDatas(Connection con, String tableName) {
+        String sql = SqlUtil.getSelectAllSql(tableName);
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = con.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ResultSetMetaData resultSetMetaData = rs.getMetaData();
+                int columCount = resultSetMetaData.getColumnCount();
+                for (int i = 1; i <= columCount; i++) {
+                    String columnName = resultSetMetaData.getColumnName(i);
+                    Object value = rs.getObject(i);
+                    System.out.println(columnName + "=" + value);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.releaseConnection(null, pstmt, rs);
+        }
+        return null;
+    }
+
+
 }

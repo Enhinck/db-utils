@@ -2,7 +2,9 @@ package com.enhinck.db.entity;
 
 import lombok.Data;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -14,7 +16,7 @@ public class ExcelFile {
 
     public ExcelFile() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String date = simpleDateFormat.format(new Date())
+        String date = simpleDateFormat.format(new Date());
         fileName = date + ".xlsx";
     }
 

@@ -28,6 +28,7 @@ public class SqlUtil {
         private Class<?> classType;
         private Map<String, Object> params = new HashedMap();
         private List<String> orderAsc = new ArrayList<>();
+
         public Sqls() {
         }
 
@@ -110,6 +111,13 @@ public class SqlUtil {
         bsql.append(" ").append(where);
         return bsql.toString();
     }
+
+    public static String getSelectAllSql(String tableName) {
+        final StringBuilder bsql = new StringBuilder();
+        bsql.append("select * from " + tableName);
+        return bsql.toString();
+    }
+
 
     static String getMethodName(String fieldName) {
         String first = fieldName.substring(0, 1).toUpperCase();
