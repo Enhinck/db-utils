@@ -33,7 +33,7 @@ MysqlDbCompare
 
 ## 2. 配置 
 #### 配置db.properties
-> \#新版本数据库 (旧版本升级为新版本) 
+> \#新版本数据库 (旧版本升级为新版本)  
 new.db.url=jdbc:mysql://127.0.0.1:3306/newdb  
 new.db.username=root             
 new.db.password=mysql  
