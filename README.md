@@ -49,7 +49,7 @@ db.datasync.tables=table_name1,table_name2
 > java -jar db-utils.jar
 
 将会在db-utils.jar所在目录下生成
-> yyyy-MM-dd数据库更新脚本.sql
+> 数据库更新脚本yyyy-MM-dd_HH_mm_ss.sql
 
 在olddb中执行该脚本，可将olddb表结构升级为newdb一致
 "olddb"-->"newdb"
