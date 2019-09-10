@@ -33,17 +33,17 @@ MysqlDbCompare
 
 ## 2. 配置 
 #### 配置db.properties
-> #新版本数据库 (旧版本升级为新版本) 
-> new.db.url=jdbc:mysql://127.0.0.1:3306/newdb  
+> \#新版本数据库 (旧版本升级为新版本) 
+new.db.url=jdbc:mysql://127.0.0.1:3306/newdb  
 new.db.username=root             
 new.db.password=mysql  
-> #旧版本数据库 
-> old.db.url=jdbc:mysql://127.0.0.1:3306/olddb   
-old.db.username=root  
-old.db.password=mysql
-#需要同步数据的表
-db.datasync.tables=table_name1,table_name2
-#文档生成路径 空值为当前路径
+\# 旧版本数据库  
+old.db.url=jdbc:mysql://127.0.0.1:3306/olddb   
+old.db.username=root\
+old.db.password=mysql\
+\#需要同步数据的表\
+db.datasync.tables=table_name1,table_name2\
+\#文档生成路径 空值为当前路径\
 doc.path=
 
 ## 3. 将db.properties与db-utils.jar放在同一目录下
