@@ -3,6 +3,7 @@ package com.enhinck.db;
 import com.enhinck.db.entity.*;
 import com.enhinck.db.excel.CommonExcelWriteUtil;
 import com.enhinck.db.util.Database;
+import com.enhinck.db.util.FileUtil;
 import com.enhinck.db.util.MysqlDbUtil;
 import com.enhinck.db.util.PropertiesUtil;
 import com.enhinck.db.word.CommonWordWriteUtil;
@@ -33,7 +34,7 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
      * @param args
      * @throws IOException
      */
-    public static void main(String[] args){
+    public static void main(String[] args) {
         final Database oldDB = getDatabse(NEW);
         Connection oldDBConnection = oldDB.getConnection();
         log.info("数据库已连接成功：{}", oldDB.getUrl());
@@ -48,30 +49,15 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
      * @return
      */
     public static void db2Dictionary(final Connection oldDbConnection) {
+        log.info("开始生成数据字典...");
         List<InformationSchemaTables> oldTableNameSets = MysqlDbUtil.getTables(oldDbConnection);
         ExcelFile excelFile = new ExcelFile();
-        excelFile.setDocFileName("数据字典.docx");
+        excelFile.setFileName(FileUtil.createFileName("数据字典表格", "xlsx"));
+        excelFile.setDocFileName(FileUtil.createFileName("数据字典文档", "docx"));
         tables2ExcelSheets(oldDbConnection, excelFile, oldTableNameSets);
+        log.info("开始写入表格...");
         CommonExcelWriteUtil.write(excelFile);
-        CommonWordWriteUtil.write(excelFile);
-    }
-
-
-    /**
-     * 数据字典
-     *
-     * @param oldDbConnection
-     * @return
-     */
-    public static void db2Dictionary(final Connection oldDbConnection, List<String> tableNames) {
-        ExcelFile excelFile = new ExcelFile();
-        excelFile.setDocFileName("G:\\DOC\\增量表.docx");
-        excelFile.setFileName("G:\\DOC\\增量表.xlsx");
-        for (String tableName : tableNames) {
-            List<InformationSchemaTables> oldTableNameSets = MysqlDbUtil.getTables(oldDbConnection, tableName);
-            tables2ExcelSheets(oldDbConnection, excelFile, oldTableNameSets);
-        }
-        CommonExcelWriteUtil.write(excelFile);
+        log.info("开始写入Word文档...");
         CommonWordWriteUtil.write(excelFile);
     }
 
@@ -99,13 +85,11 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
     }
 
 
-    public static void toOneVersionSummaryDoc(final Connection newDbConnection, OneVersionModifySummary oneVersionModifySummary) {
+    public static void toOneVersionSummaryDoc(final String docPath, final Connection newDbConnection, OneVersionModifySummary oneVersionModifySummary) {
         ExcelFile excelFile = new ExcelFile();
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String fileName = simpleDateFormat.format(new Date());
-        excelFile.setDocFileName("G:\\DOC\\"+fileName+"summary.docx");
-        excelFile.setFileName("G:\\DOC\\"+fileName+"summary.xlsx");
+        excelFile.setDocFileName(docPath + FileUtil.createFileName("数据库变动文档", "docx"));
+        excelFile.setFileName(docPath + FileUtil.createFileName("数据库变动数据字典", "xlsx"));
         List<InformationSchemaTables> oldTableNameSets = oneVersionModifySummary.getAddTable();
         // 新增表
         tables2ExcelSheets(newDbConnection, excelFile, oldTableNameSets);

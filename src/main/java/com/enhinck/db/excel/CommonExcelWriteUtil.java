@@ -40,7 +40,7 @@ public class CommonExcelWriteUtil {
     }
 
     public static void write(ExcelFile excelFile) {
-        if (!excelFile.hasContent()){
+        if (!excelFile.hasContent()) {
             return;
         }
 
@@ -87,6 +87,7 @@ public class CommonExcelWriteUtil {
                 FileOutputStream out = new FileOutputStream(fileAbsName);
                 workbook.write(out);
                 out.close();
+                log.info("生成表格文件:{}", fileAbsName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -111,11 +112,11 @@ public class CommonExcelWriteUtil {
         sheet.setColumnWidth(0, 5000);
         sheet.setColumnWidth(1, 5000);
         sheet.setColumnWidth(2, 2000);
-        sheet.setColumnWidth(3, 60*256);
-        sheet.setColumnWidth(4, 60*256);
-        sheet.setColumnWidth(5, 60*256);
-        sheet.setColumnWidth(6, 60*256);
-        sheet.setColumnWidth(7, 60*256);
+        sheet.setColumnWidth(3, 60 * 256);
+        sheet.setColumnWidth(4, 60 * 256);
+        sheet.setColumnWidth(5, 60 * 256);
+        sheet.setColumnWidth(6, 60 * 256);
+        sheet.setColumnWidth(7, 60 * 256);
         sheet.autoSizeColumn(1);
     }
 

@@ -104,6 +104,7 @@ public class CommonWordWriteUtil {
         OutputStream os = new FileOutputStream(savePath);
         document.write(os);
         os.close();
+        log.info("生成word文件:{}", savePath);
     }
 
 

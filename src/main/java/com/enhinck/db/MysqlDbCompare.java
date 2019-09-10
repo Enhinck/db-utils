@@ -23,6 +23,8 @@ import java.util.*;
 public class MysqlDbCompare {
     static Map<String, String> map;
 
+    public static String docPath = "";
+
     static {
         File file = new File("db.properties");
         if (!file.exists()) {
@@ -30,6 +32,8 @@ public class MysqlDbCompare {
             throw new RuntimeException("配置文件异常");
         }
         map = PropertiesUtil.readProperties("db.properties");
+        // 生成数据字典目录
+        docPath = map.get("doc.path");
     }
 
     public static final String OLD = "old";
@@ -85,13 +89,9 @@ public class MysqlDbCompare {
         // 合成脚本内容
         stringBuilder.append(tableCreates).append(columnsAddModify);
         stringBuilder.append("\n").append(dataAddModify);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String fileName = simpleDateFormat.format(new Date()) + "数据库更新脚本.sql";
-        File file = new File(fileName);
-
+        File file = new File(FileUtil.createFileName("数据库更新脚本", "sql"));
         FileUtils.write(file, stringBuilder.toString(), "UTF-8");
-
-        MysqlDbToDictionary.toOneVersionSummaryDoc(newDbConnection, oneVersionModifySummary);
+        MysqlDbToDictionary.toOneVersionSummaryDoc(docPath, newDbConnection, oneVersionModifySummary);
 
         log.info("升级脚本已生成:{}", file.getAbsolutePath());
     }
