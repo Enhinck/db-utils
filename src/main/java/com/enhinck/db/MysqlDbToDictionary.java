@@ -33,7 +33,7 @@ public class MysqlDbToDictionary extends MysqlDbCompare {
      * @param args
      * @throws IOException
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
         final Database oldDB = getDatabse(NEW);
         Connection oldDBConnection = oldDB.getConnection();
         log.info("数据库已连接成功：{}", oldDB.getUrl());

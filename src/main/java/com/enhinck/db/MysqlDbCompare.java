@@ -1,9 +1,7 @@
 package com.enhinck.db;
 
 import com.enhinck.db.entity.*;
-import com.enhinck.db.excel.CommonExcelWriteUtil;
 import com.enhinck.db.util.*;
-import com.enhinck.db.word.CommonWordWriteUtil;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +24,11 @@ public class MysqlDbCompare {
     static Map<String, String> map;
 
     static {
+        File file = new File("db.properties");
+        if (!file.exists()) {
+            log.info("请检查{}配置文件是否存在", file.getAbsolutePath());
+            throw new RuntimeException("配置文件异常");
+        }
         map = PropertiesUtil.readProperties("db.properties");
     }
 
@@ -75,30 +78,112 @@ public class MysqlDbCompare {
 
         List<String> list = getSyncTables();
 
+        log.info("开始生成数据同步表语句，将比对以下表数据:{}", list);
         // 关键配置数据同步
         String dataAddModify = compareTableDatas(list, oldDBConnection, newDbConnection);
 
         // 合成脚本内容
         stringBuilder.append(tableCreates).append(columnsAddModify);
+        stringBuilder.append("\n").append(dataAddModify);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String fileName = simpleDateFormat.format(new Date()) + "数据库更新脚本.sql";
-        FileUtils.write(new File(fileName), stringBuilder.toString(), "UTF-8");
+        File file = new File(fileName);
 
+        FileUtils.write(file, stringBuilder.toString(), "UTF-8");
 
         MysqlDbToDictionary.toOneVersionSummaryDoc(newDbConnection, oneVersionModifySummary);
 
-        log.info("升级脚本已生成:{}", fileName);
+        log.info("升级脚本已生成:{}", file.getAbsolutePath());
     }
+
+   /* public static void main(String[] args) {
+        Set<String> sss = new HashSet<>();
+        sss.add("id");
+        sss.add("name");
+        sss.add("value");
+       //System.out.println(createInsertTemplates("", sss));
+
+        String template = createUpdateTemplates("tableA", sss);
+
+        Object[] params = new Object[]{"id","name", "value","1"};
+
+        String sql = String.format(template, params);
+        System.out.println(sql);
+    }*/
 
     private static String compareTableDatas(List<String> list, Connection oldDBConnection, Connection newDbConnection) {
 
+        StringBuilder sqlInsertUpade = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
-            String tableName = list.get(0);
-            MysqlDbUtil.getTableDatas(oldDBConnection, tableName);
+            String tableName = list.get(i);
+            Map<Long, Map<String, Object>> oldDatas = MysqlDbUtil.getTableDatas(oldDBConnection, tableName);
+            Map<Long, Map<String, Object>> newDatas = MysqlDbUtil.getTableDatas(newDbConnection, tableName);
+          /*  Set<Long> oldKeys = oldDatas.keySet();
+            Set<Long> newKeys = newDatas.keySet();
+*/
+            sqlInsertUpade.append("-- ").append(tableName).append(" INSERT   START ------").append("\n");
+            MapDifference<Long, Map<String, Object>> difference = Maps.difference(oldDatas, newDatas);
+            Map<Long, Map<String, Object>> newAdds = difference.entriesOnlyOnRight();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            // INSERT INTO `tb_customer` (`id`, `union_id`, `ideallife_id`, `nick_name`, `mobile`, `verification_face`, `gender`, ) VALUES ('9',);
+            // insert 语句
+            //INSERT INTO `ioc`.`hs_house` (`id`, `project_id`, `buiding_index`, `buiding_name`, `unit`, `unit_name`, `floor`, `house_number`, `house_full_name`, `gmt_create`, `gmt_modify`, `status`, `house_type`, `category`, `tree_id`) VALUES ('153', '53', '11', 'E幢', '11', '6楼', '6', '101', '美的样板间（住房）', '2018-11-26 14:11:07', '2018-11-26 14:11:07', '1', '', '私有', NULL);
+            newAdds.forEach((key, value) -> {
+                Set<String> keys = value.keySet();
+                Collection<Object> v = value.values();
+                String template = createInsertTemplates(tableName, keys);
+                Object[] keyObjs = keys.toArray();
+                Object[] valueObjs = v.toArray();
+                int size = keys.size();
+                Object[] params = Arrays.copyOf(keyObjs, size * 2);
+                for (int j = 0; j < valueObjs.length; j++) {
+                    Object valueObj = valueObjs[j];
+                    Object result;
+                    if (valueObj instanceof Date) {
+                        result = "'" + simpleDateFormat.format((Date) valueObj) + "'";
+                    } else if (valueObj != null) {
+                        result = "'" + valueObj.toString() + "'";
+                    } else {
+                        result = "NULL";
+                    }
+                    params[size + j] = result;
+                }
+                sqlInsertUpade.append(String.format(template, params));
+                sqlInsertUpade.append("\n");
+            });
+            sqlInsertUpade.append("-- ").append(tableName).append(" INSERT  END ------").append("\n");
 
-            MysqlDbUtil.getTableDatas(newDbConnection, tableName);
+
+            sqlInsertUpade.append("-- ").append(tableName).append(" UPDATE   START ------").append("\n");
+            Map<Long, MapDifference.ValueDifference<Map<String, Object>>> differenceMaps = difference.entriesDiffering();
+            differenceMaps.forEach((key, value) -> {
+                Map<String, Object> row = value.rightValue();
+                // update 语句
+                Set<String> keys = row.keySet();
+                Collection<Object> v = row.values();
+                Object[] keyObjs = keys.toArray();
+                Object[] valueObjs = v.toArray();
+                int size = keys.size();
+                for (int j = 0; j < valueObjs.length; j++) {
+                    Object valueObj = valueObjs[j];
+                    if (valueObj instanceof Date) {
+                        valueObjs[j] = "'" + simpleDateFormat.format((Date) valueObj) + "'";
+                    } else if (valueObj != null) {
+                        valueObjs[j] = "'" + valueObj.toString() + "'";
+                    } else {
+                        valueObjs[j] = "NULL";
+                    }
+                }
+                Object[] params = Arrays.copyOf(valueObjs, size + 1);
+                params[params.length - 1] = key;
+                String template = createUpdateTemplates(tableName, keys);
+                sqlInsertUpade.append(String.format(template, params));
+                sqlInsertUpade.append("\n");
+            });
+            sqlInsertUpade.append("-- ").append(tableName).append(" UPDATE   END ------").append("\n");
+
+            sqlInsertUpade.append("--   表分割线------------").append("\n");
         }
-
 
         // 增量
 
@@ -106,8 +191,36 @@ public class MysqlDbCompare {
 
         // 删除
 
+        return sqlInsertUpade.toString();
+    }
 
-        return null;
+    private static String createInsertTemplates(String tableName, Set<String> keys) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("INSERT INTO `").append(tableName).append("`").append("(");
+        for (int i = 0; i < keys.size(); i++) {
+            stringBuilder.append("`%s").append("`").append(",");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        stringBuilder.append(") VALUES").append("(");
+        for (int i = 0; i < keys.size(); i++) {
+            stringBuilder.append("%s").append(",");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        stringBuilder.append(");");
+        return stringBuilder.toString();
+    }
+
+
+    private static String createUpdateTemplates(String tableName, Set<String> keys) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("UPDATE `").append(tableName).append("`").append(" SET ");
+        Object[] columns = keys.toArray();
+        for (int i = 0; i < keys.size(); i++) {
+            stringBuilder.append(" `").append(columns[i]).append("` = %s ").append(",");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        stringBuilder.append(" WHERE `id` = %s ; ");
+        return stringBuilder.toString();
     }
 
 
