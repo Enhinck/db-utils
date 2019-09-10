@@ -43,6 +43,8 @@ old.db.username=root
 old.db.password=mysql
 #需要同步数据的表
 db.datasync.tables=table_name1,table_name2
+#文档生成路径 空值为当前路径
+doc.path=
 
 ## 3. 将db.properties与db-utils.jar放在同一目录下
 执行
