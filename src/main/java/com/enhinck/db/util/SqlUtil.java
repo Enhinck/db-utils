@@ -185,4 +185,20 @@ public class SqlUtil {
         return sb.toString();
     }
 
+    /**
+     * 驼峰转下划线
+     */
+    public static String firstToLowerCase(String str) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(str.substring(0,1).toLowerCase()).append(str.substring(1,str.length()));
+        return sb.toString();
+    }
+
+    public static String getGetMethodName(String fieldName) {
+        StringBuilder builder = new StringBuilder();
+        String first = fieldName.substring(0, 1).toUpperCase();
+        String end = fieldName.substring(1, fieldName.length());
+        builder.append("get").append(first).append(end);
+        return builder.toString();
+    }
 }
