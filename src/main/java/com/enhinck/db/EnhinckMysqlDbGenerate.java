@@ -40,19 +40,19 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
 
         //subscribe
         ClassObject classObject = new ClassObject();
-        classObject.setPath("E:\\huenbin\\ioc_merge\\sc-subscribe\\src\\main\\java");
+        classObject.setPath("/Users/huenbin/work/ioc/sc-ioc-api/src/main/java");
         // DO包路径
-        classObject.setPackageName("com.greentown.subscribe.model.domain");
+        classObject.setPackageName("com.greentown.ioc.model.domain");
         // DTO包路径
-        classObject.setDtoPackageName("com.greentown.subscribe.model.dto");
+        classObject.setDtoPackageName("com.greentown.ioc.model.dto");
         // mapper包路径
-        classObject.setMapperPackageName("com.greentown.subscribe.mapper");
+        classObject.setMapperPackageName("com.greentown.ioc.mapper");
         // service包路径
-        classObject.setServicePackageName("com.greentown.subscribe.service");
-        classObject.setVoPackageName("com.greentown.subscribe.model.vo");
-        classObject.setControllerPackageName("com.greentown.subscribe.controller");
+        classObject.setServicePackageName("com.greentown.ioc.service");
+        classObject.setVoPackageName("com.greentown.ioc.model.vo");
+        classObject.setControllerPackageName("com.greentown.ioc.controller");
         classObject.getClassFieldList().clear();
-        if (db2JavaBean(oldDBConnection, "tb_parking_lot", classObject)) {
+        if (db2JavaBean(oldDBConnection, "tb_parking_useage_trend", classObject)) {
             BeanWriteUtil.writeJavaBean(classObject);
             log.info("生成JavaBean完成");
         }
