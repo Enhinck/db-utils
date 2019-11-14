@@ -15,10 +15,15 @@ public class ClassObject {
     private String dtoPackageName;
     private String mapperPackageName;
     private String servicePackageName;
+    private String voPackageName;
+    private String controllerPackageName;
     private String dtoName;
     private String serviceName;
     private String mapperName;
     private String className;
+
+    private String voName;
+    private String controllerName;
     private boolean useLombok = true;
     private String tableName;
     private Set<String> importClassList = new LinkedHashSet<>();

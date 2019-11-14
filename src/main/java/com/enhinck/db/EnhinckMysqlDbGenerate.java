@@ -38,6 +38,7 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
         Connection oldDBConnection = oldDB.getConnection();
         log.info("数据库已连接成功：{}", oldDB.getUrl());
 
+        //subscribe
         ClassObject classObject = new ClassObject();
         classObject.setPath("E:\\huenbin\\ioc_merge\\sc-subscribe\\src\\main\\java");
         // DO包路径
@@ -48,8 +49,10 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
         classObject.setMapperPackageName("com.greentown.subscribe.mapper");
         // service包路径
         classObject.setServicePackageName("com.greentown.subscribe.service");
+        classObject.setVoPackageName("com.greentown.subscribe.model.vo");
+        classObject.setControllerPackageName("com.greentown.subscribe.controller");
         classObject.getClassFieldList().clear();
-        if (db2JavaBean(oldDBConnection, "tb_parking_lot_gate", classObject)) {
+        if (db2JavaBean(oldDBConnection, "tb_parking_lot", classObject)) {
             BeanWriteUtil.writeJavaBean(classObject);
             log.info("生成JavaBean完成");
         }
@@ -71,10 +74,14 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
         String mapperName = tempName + "Mapper";
         String serviceName = tempName + "Service";
         String dtoName = tempName + "DTO";
+        String voName = tempName + "VO";
+        String controllerName = tempName + "Controller";
         classObject.setDtoName(dtoName);
         classObject.setClassName(className);
         classObject.setMapperName(mapperName);
         classObject.setServiceName(serviceName);
+        classObject.setVoName(voName);
+        classObject.setControllerName(controllerName);
         List<InformationSchemaTables> informationSchemaTables = MysqlDbUtil.getTables(oldDbConnection);
         for (InformationSchemaTables informationSchemaTable : informationSchemaTables) {
             if (informationSchemaTable.getTableName().equals(tableName)) {

@@ -94,13 +94,78 @@ public class BeanWriteUtil {
             }
         }
 
+
+        // VO
+      /*  {
+            StringBuilder voPath = new StringBuilder();
+            voPath.append(path);
+            StringBuilder voBeanContent = new StringBuilder();
+            processPackage(classObject.getVoPackageName(), classObject.getVoName(), voPath, voBeanContent);
+            processVOContent(classObject, voBeanContent);
+            File javaVoFile = new File(voPath.toString());
+            try {
+                FileUtils.write(javaVoFile, voBeanContent.toString(), "UTF-8");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
+
+
+    }
+
+    private static void processVOContent(ClassObject classObject, StringBuilder voBeanContent) {
+        voBeanContent.append("\n");
+        if (classObject.isUseLombok()) {
+            voBeanContent.append("import lombok.Data;\n");
+        }
+        voBeanContent.append("import io.swagger.annotations.ApiModelProperty;\n");
+        voBeanContent.append("import org.springframework.beans.BeanUtils;\n\n");
+
+        classObject.getImportClassList().forEach(importClass ->
+                voBeanContent.append("import ").append(importClass).append(";\n")
+        );
+        voBeanContent.append("import java.io.Serializable;\n");
+        voBeanContent.append("\n");
+        Date now = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        voBeanContent.append("/**\n" +
+                " * ").append(classObject.getComment()).append("\n" +
+                " *\n" +
+                " * @author huenb\n" +
+                " * @date ").append(dateFormat.format(now)).append("\n" +
+                " */\n");
+        if (classObject.isUseLombok()) {
+            voBeanContent.append("@Data\n");
+        }
+        voBeanContent.append("public class ").append(classObject.getDtoName()).append(" implements Serializable {\n");
+        voBeanContent.append("\n");
+        classObject.getClassFieldList().forEach(classField -> {
+            // 字段注释
+            voBeanContent.append("    /**\n" +
+                    "     * ").append(classField.getComment()).append("\n" +
+                    "     */\n");
+            // 字段
+            voBeanContent.append("    private ").append(classField.getFieldType()).append(" ").append(classField.getName()).append(";\n");
+            // 空行
+            voBeanContent.append("\n");
+        });
+
+        voBeanContent.append("    public <T> T copyPropertiesTo(T target, String... ignoreProperties) {\n" +
+                "        BeanUtils.copyProperties(this, target, ignoreProperties);\n" +
+                "        return target;\n" +
+                "    }\n");
+
+
+        voBeanContent.append("}");
     }
 
     private static void processDOContent(ClassObject classObject, StringBuilder doBeanContent) {
         doBeanContent.append("\n");
         if (classObject.isUseLombok()) {
-            doBeanContent.append("import lombok.Data;\n\n");
+            doBeanContent.append("import lombok.Data;\n");
         }
+        doBeanContent.append("import org.springframework.beans.BeanUtils;\n\n");
+
         classObject.getImportClassList().forEach(importClass ->
                 doBeanContent.append("import ").append(importClass).append(";\n")
         );
@@ -133,7 +198,7 @@ public class BeanWriteUtil {
                     "     * ").append(classField.getComment()).append("\n" +
                     "     */\n");
             // 字段
-            if (classField.getName().equals("id")){
+            if (classField.getName().equals("id")) {
                 doBeanContent.append("    @Id\n" +
                         "    @GeneratedValue(generator = \"JDBC\")\n");
             }
@@ -141,6 +206,12 @@ public class BeanWriteUtil {
             // 空行
             doBeanContent.append("\n");
         });
+
+        doBeanContent.append("    public <T> T copyPropertiesTo(T target, String... ignoreProperties) {\n" +
+                "        BeanUtils.copyProperties(this, target, ignoreProperties);\n" +
+                "        return target;\n" +
+                "    }\n");
+
         doBeanContent.append("}");
     }
 
@@ -253,9 +324,16 @@ public class BeanWriteUtil {
                 "    void delete").append(classObject.getDtoName()).append("(Long id);\n\n");
 
         serviceBeanContent.append("  /**\n" +
+                "     * 根据id查询\n" +
+                "     * @return\n" +
+                "     */\n" +
+                "    ").append(classObject.getDtoName()).append(" selectOne(Long id);\n\n");
+
+        serviceBeanContent.append("  /**\n" +
                 "     * 查询\n" +
                 "     *\n" +
                 "     * @param ").append(param).append("\n" +
+                "     * @return\n" +
                 "     */\n" +
                 "    List<").append(classObject.getDtoName()).append("> select").append(classObject.getDtoName()).append("(").append(classObject.getDtoName()).append(" ").append(param).append(");\n\n");
 
@@ -319,8 +397,6 @@ public class BeanWriteUtil {
                 "    public void save").append(classObject.getDtoName()).append("(").append(classObject.getDtoName()).append(" ").append(param).append("){\n");
 
 
-
-
         serviceBeanContent.append("        ").append(mapper).append(".insertSelective(").append(param).append(".copyPropertiesTo(new ").append(classObject.getClassName()).append("()));\n");
         serviceBeanContent.append("    }\n");
 
@@ -348,6 +424,23 @@ public class BeanWriteUtil {
 
 
         serviceBeanContent.append("    }\n");
+
+
+
+        String doName = SqlUtil.firstToLowerCase(classObject.getClassName());
+        serviceBeanContent.append("  /**\n" +
+                "     * 根据id查询\n" +
+                "     */\n" +
+                "    @Override\n" +
+                "    public ").append(classObject.getDtoName()).append(" selectOne(Long id){\n");
+        serviceBeanContent.append("        ").append(classObject.getClassName()).append(" ").append(doName).append(" = ").append(mapper).append(".selectByPrimaryKey(id);\n");
+        serviceBeanContent.append("        if (").append(doName).append(" != null) {\n" +
+                "            return ").append(doName).append(".copyPropertiesTo(new ").append(classObject.getDtoName()).append("());\n" +
+                "        }\n" +
+                "        return null;\n");
+        serviceBeanContent.append("    }\n");
+
+
         serviceBeanContent.append("  /**\n" +
                 "     * 查询\n" +
                 "     *\n" +
