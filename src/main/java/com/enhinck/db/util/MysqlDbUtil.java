@@ -107,7 +107,7 @@ public class MysqlDbUtil {
     public static List<InformationSchemaTables> getTables(Connection con) {
         String tableSchema = currentDatabase(con);
         List<InformationSchemaTables> tables = new ArrayList<>();
-        SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").orderByAsc("create_time");
+        SqlUtil.Sqls sqls = SqlUtil.getWhere(InformationSchemaTables.class).andEqualTo("tableSchema", tableSchema).andEqualTo("tableType", "BASE TABLE").orderByAsc("table_name");
         String sql = SqlUtil.getSelectSql(InformationSchemaTables.class, sqls.build());
         getTables(con, tables, sqls, sql);
         return tables;

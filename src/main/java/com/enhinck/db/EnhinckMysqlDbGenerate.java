@@ -52,7 +52,7 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
         classObject.setVoPackageName("com.greentown.subscribe.model.vo");
         classObject.setControllerPackageName("com.greentown.subscribe.controller");
         classObject.getClassFieldList().clear();
-        if (db2JavaBean(oldDBConnection, "tb_parking_lot", classObject)) {
+        if (db2JavaBean(oldDBConnection, "tb_person_count_every_hour_new", classObject)) {
             BeanWriteUtil.writeJavaBean(classObject);
             log.info("生成JavaBean完成");
         }

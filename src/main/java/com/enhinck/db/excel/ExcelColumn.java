@@ -9,5 +9,16 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface ExcelColumn {
     String name() default "";
+
+    int row() default 0;
+
+    int cell() default 0;
+
+    ColumnType columnType() default ColumnType.CELL;
+
     Class<? extends IExcelCellValueAdapt> valueAdapt() default DefaultExcelCellValueAdapt.class;
+
+    enum ColumnType {
+        CELL, LIST
+    }
 }
