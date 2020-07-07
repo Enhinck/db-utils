@@ -39,17 +39,17 @@ public class EnhinckMysqlDbGenerate extends MysqlDbCompare {
         log.info("数据库已连接成功：{}", oldDB.getUrl());
 
         ClassObject classObject = new ClassObject();
-        classObject.setPath("E:\\huenbin\\ioc_merge\\sc-subscribe\\src\\main\\java");
+        classObject.setPath("/Users/huenbin/work/otherProject/db-utils/src/main/java/");
         // DO包路径
-        classObject.setPackageName("com.greentown.subscribe.model.domain");
+        classObject.setPackageName("com.enhinck.db.generate.model.domain");
         // DTO包路径
-        classObject.setDtoPackageName("com.greentown.subscribe.model.dto");
+        classObject.setDtoPackageName("com.enhinck.db.generate.model.dto");
         // mapper包路径
-        classObject.setMapperPackageName("com.greentown.subscribe.mapper");
+        classObject.setMapperPackageName("com.enhinck.db.generate.mapper");
         // service包路径
-        classObject.setServicePackageName("com.greentown.subscribe.service");
+        classObject.setServicePackageName("com.enhinck.db.generate.service");
         classObject.getClassFieldList().clear();
-        if (db2JavaBean(oldDBConnection, "tb_parking_lot_gate", classObject)) {
+        if (db2JavaBean(oldDBConnection, "ioc_app_user", classObject)) {
             BeanWriteUtil.writeJavaBean(classObject);
             log.info("生成JavaBean完成");
         }
