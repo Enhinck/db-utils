@@ -90,6 +90,9 @@ public class FreemarkUtil {
                     try {
                         javaFile.createNewFile();
 
+                       // InputStream in = FreemarkUtil.class.getClassLoader().getResourceAsStream("javaTemplate/service.ftl");
+
+                       // log.info(IOUtils.toString(in, "UTF-8"));
                         ClassPathResource resource = new ClassPathResource("javaTemplate/service.ftl");
                         InputStream javaIn = resource.getInputStream();
 
@@ -98,7 +101,7 @@ public class FreemarkUtil {
                         IOUtils.closeQuietly(javaIn);
                         IOUtils.closeQuietly(javaOutputStream);
                     } catch (Exception e) {
-
+                        log.info("{}", e);
                     }
 
                 }
@@ -114,16 +117,33 @@ public class FreemarkUtil {
                         IOUtils.closeQuietly(mysqlIn);
                         IOUtils.closeQuietly(mysqlOutputStream);
                     } catch (Exception e) {
+                        log.info("{}", e);
+                    }
+                }
 
+                File importExcel = new File(templePath + "importExcel.xlsx");
+                if (!importExcel.exists()) {
+                    try {
+                        importExcel.createNewFile();
+                        ClassPathResource resource = new ClassPathResource("javaTemplate/importExcel.xlsx");
+                        InputStream excelIn = resource.getInputStream();
+                        FileOutputStream excelOutput = new FileOutputStream(importExcel);
+                        IOUtils.copy(excelIn, excelOutput);
+                        IOUtils.closeQuietly(excelIn);
+                        IOUtils.closeQuietly(excelOutput);
+                    } catch (Exception e) {
+                        log.info("{}", e);
                     }
                 }
             }
 
             configuration.setDirectoryForTemplateLoading(new File(templePath));
+            configuration.setDefaultEncoding("UTF-8");
             // step4 加载模版文件
             javaTemplate = configuration.getTemplate("service.ftl");
-
+            javaTemplate.setEncoding("UTF-8");
             mysqlTemplate = configuration.getTemplate("MySQL.ftl");
+            mysqlTemplate.setEncoding("UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -158,7 +178,7 @@ public class FreemarkUtil {
             }
             // step5 生成数据
             File javaFile = new File(CLASS_PATH + relativePath + javaClassEntity.getClassName() + ".java");
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile)));
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile),"UTF-8"));
             // step6 输出文件
             javaTemplate.process(javaClassEntity, out);
             log.info("『{}』类生成成功", javaClassEntity.getClassName());
@@ -183,7 +203,7 @@ public class FreemarkUtil {
 
             // step5 生成数据
             File docFile = new File(CLASS_PATH + "create" + ".sql");
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(docFile)));
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(docFile),"UTF-8"));
             // step6 输出文件
             mysqlTemplate.process(javaClassEntity, out);
             log.info("sql脚本生成成功");
