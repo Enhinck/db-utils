@@ -25,7 +25,6 @@ public class DOFactory extends BaseFacotry {
     }
 
 
-
     private DOFactory() {
 
     }
@@ -49,9 +48,10 @@ public class DOFactory extends BaseFacotry {
 
         List<String> annotations = commonPOJOAnnotations();
 
-        if (!isIoc){
+        if (!isIoc) {
             annotations.add("@EqualsAndHashCode(callSuper = true)");
         }
+        annotations.add("@TableName(value = \"" + javaDefineEntity.getTableName() + "\")");
 
         javaClassEntity.setAnnotations(annotations);
 

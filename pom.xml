@@ -151,7 +151,7 @@
                     <archive>
                         <manifest>
                             <!-- 此处指定main方法入口的class -->
-                            <mainClass>com.enhinck.db.MysqlDbCompare</mainClass>
+                            <mainClass>com.enhinck.db.ui.MainFrame</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

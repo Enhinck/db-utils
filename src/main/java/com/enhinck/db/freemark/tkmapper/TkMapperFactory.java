@@ -18,20 +18,20 @@ import java.util.Set;
  * @author huenbin
  * @date 2020-07-02 17:00
  */
-public class MapperFactory extends BaseFacotry {
-    private static final MapperFactory doFactory = new MapperFactory();
+public class TkMapperFactory extends BaseFacotry {
+    private static final TkMapperFactory doFactory = new TkMapperFactory();
 
-    public static MapperFactory getInstance() {
+    public static TkMapperFactory getInstance() {
         return doFactory;
     }
 
-    private MapperFactory() {
+    private TkMapperFactory() {
 
     }
 
     @Override
     public String parentClass() {
-        return "BaseMapper";
+        return "IBaseMapper";
     }
 
 
@@ -45,7 +45,7 @@ public class MapperFactory extends BaseFacotry {
         classGenerics.add(classGeneric);
         javaClassEntity.setExtendsGenerics(classGenerics);
         Set<String> importList = new HashSet<>();
-        importList.add("com.baomidou.mybatisplus.core.mapper.BaseMapper");
+        importList.add("com.greentown.common.mapper.IBaseMapper");
 
         importList.addAll(javaDefineEntity.getMapperImports());
 
