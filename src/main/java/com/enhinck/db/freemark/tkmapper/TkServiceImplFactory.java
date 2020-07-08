@@ -18,14 +18,14 @@ import java.util.Set;
  * @author huenbin
  * @date 2020-07-02 17:00
  */
-public class ServiceImplFactory extends BaseFacotry {
-    private static final ServiceImplFactory doFactory = new ServiceImplFactory();
+public class TkServiceImplFactory extends BaseFacotry {
+    private static final TkServiceImplFactory doFactory = new TkServiceImplFactory();
 
-    public static ServiceImplFactory getInstance() {
+    public static TkServiceImplFactory getInstance() {
         return doFactory;
     }
 
-    private ServiceImplFactory() {
+    private TkServiceImplFactory() {
 
     }
 

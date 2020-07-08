@@ -14,20 +14,20 @@ import java.util.Set;
  * @author huenbin
  * @date 2020-07-02 17:00
  */
-public class DOFactory extends BaseFacotry {
-    private static final DOFactory doFactory = new DOFactory();
+public class TkDOFactory extends BaseFacotry {
+    private static final TkDOFactory doFactory = new TkDOFactory();
 
-    public static DOFactory getInstance() {
+    public static TkDOFactory getInstance() {
         return doFactory;
     }
 
-    private DOFactory() {
+    private TkDOFactory() {
 
     }
 
     @Override
     public String parentClass() {
-        return "MyBatisPlusBaseDO";
+        return "BaseDO";
     }
 
 
@@ -43,11 +43,12 @@ public class DOFactory extends BaseFacotry {
         javaClassEntity.setExtendsGenerics(classGenerics);
 
         List<String> annotations = commonPOJOAnnotations();
+        annotations.add("@Table(name = \"" + javaDefineEntity.getTableName() + "\")");
         javaClassEntity.setAnnotations(annotations);
 
         Set<String> importList = commonPOJOImports();
-        importList.add("com.baomidou.mybatisplus.annotation.*");
-        importList.add("com.greentown.mybatisplus.domain.MyBatisPlusBaseDO");
+        importList.add("javax.persistence.Table");
+        importList.add("com.greentown.common.model.domain.BaseDO");
         javaClassEntity.setImportList(importList);
 
         javaClassEntity.setPackagePath(javaDefineEntity.getDOPackageName());
@@ -61,17 +62,11 @@ public class DOFactory extends BaseFacotry {
             classField.setClassFieldDescribe(javaFieldEntity.getDescribe());
             if (javaFieldEntity.isId()) {
                 List<String> fieldAnnontations = new ArrayList<>();
-                fieldAnnontations.add("@TableId(type = IdType.AUTO)");
-                classField.setAnnotations(fieldAnnontations);
-            }
 
-            if (javaFieldEntity.isDelFlag()) {
-                List<String> fieldAnnontations = new ArrayList<>();
-                fieldAnnontations.add("@TableLogic(value = \"0\", delval = \"1\")");
                 classField.setAnnotations(fieldAnnontations);
+            } else {
+                fields.add(classField);
             }
-
-            fields.add(classField);
         }
         javaClassEntity.setFields(fields);
 
