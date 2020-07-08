@@ -31,12 +31,9 @@ public class TkServiceImplFactory extends BaseFacotry {
 
     @Override
     public String parentClass() {
-        return "ScServiceImpl";
+        return "TkServiceImpl";
     }
 
-    public String end() {
-        return "ServiceImpl";
-    }
 
 
     public JavaClassEntity create(JavaDefineEntity<JavaFieldEntity> javaDefineEntity) {
@@ -57,8 +54,8 @@ public class TkServiceImplFactory extends BaseFacotry {
         implementsInterfaces.add(getServiceName(javaDefineEntity));
         javaClassEntity.setImplementsInterfaces(implementsInterfaces);
         Set<String> importList = new HashSet<>();
-        importList.add("com.greentown.mybatisplus.service.IScService");
-        importList.add("com.greentown.mybatisplus.service.impl.ScServiceImpl");
+        importList.add("com.greentown.tkmapper.service.ITkService");
+        importList.add("com.greentown.tkmapper.service.impl.TkServiceImpl");
         importList.add("org.springframework.stereotype.Service");
         importList.addAll(javaDefineEntity.getServiceImplImports());
 

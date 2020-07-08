@@ -89,7 +89,7 @@ public class TkControllerFactory extends BaseFacotry {
 
         {
             ClassMethod classMethod = new ClassMethod();
-            classMethod.setMethodReturnType("WebResponseEntity<Page<" + javaDefineEntity.getJavaName() + "VO>>");
+            classMethod.setMethodReturnType("WebResponseEntity<PageBean<" + javaDefineEntity.getJavaName() + "VO>>");
             classMethod.setMethodName("page");
             classMethod.setClassMethodDescribe("分页");
             List<String> methodAnnotations = new ArrayList<>();

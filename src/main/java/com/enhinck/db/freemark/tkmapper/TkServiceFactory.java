@@ -31,7 +31,7 @@ public class TkServiceFactory extends BaseFacotry {
 
     @Override
     public String parentClass() {
-        return "IScService";
+        return "ITkService";
     }
 
     public JavaClassEntity create(JavaDefineEntity<JavaFieldEntity> javaDefineEntity) {
@@ -44,7 +44,7 @@ public class TkServiceFactory extends BaseFacotry {
 
         javaClassEntity.setExtendsGenerics(classGenerics);
         Set<String> importList = new HashSet<>();
-        importList.add("com.greentown.mybatisplus.service.IScService");
+        importList.add("com.greentown.tkmapper.service.ITkService");
 
         importList.addAll(javaDefineEntity.getServiceImports());
 

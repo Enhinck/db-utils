@@ -36,12 +36,6 @@ public class TkDOFactory extends BaseFacotry {
         String className = getDOName(javaDefineEntity);
         javaClassEntity.setClassName(className);
 
-        List<ClassGenerics> classGenerics = new ArrayList<>();
-        ClassGenerics classGeneric = new ClassGenerics();
-        classGeneric.setClassName(className);
-        classGenerics.add(classGeneric);
-        javaClassEntity.setExtendsGenerics(classGenerics);
-
         List<String> annotations = commonPOJOAnnotations();
         annotations.add("@Table(name = \"" + javaDefineEntity.getTableName() + "\")");
         javaClassEntity.setAnnotations(annotations);
@@ -65,6 +59,14 @@ public class TkDOFactory extends BaseFacotry {
 
                 classField.setAnnotations(fieldAnnontations);
             } else {
+
+                if (javaFieldEntity.isDelFlag()) {
+                    List<String> fieldAnnontations = new ArrayList<>();
+                    importList.add("com.greentown.tkmapper.annontation.TkDeleteFlag");
+                    fieldAnnontations.add("@TkDeleteFlag(value = 0, delval = 1)");
+                    classField.setAnnotations(fieldAnnontations);
+                }
+
                 fields.add(classField);
             }
         }
