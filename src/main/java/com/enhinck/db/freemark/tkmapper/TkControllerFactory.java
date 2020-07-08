@@ -51,7 +51,8 @@ public class TkControllerFactory extends BaseFacotry {
         importList.add("lombok.extern.slf4j.Slf4j");
         importList.add("org.springframework.web.bind.annotation.*");
         importList.add("com.greentown.common.response.WebResponseEntity");
-        importList.add("com.baomidou.mybatisplus.extension.plugins.pagination.Page");
+        importList.add("com.greentown.common.model.page.BasePageSearch");
+        importList.add("com.greentown.common.model.page.PageBean");
 
         importList.addAll(javaDefineEntity.getControllerImports());
 
@@ -96,7 +97,7 @@ public class TkControllerFactory extends BaseFacotry {
             methodAnnotations.add("@GetMapping(\"/" + javaDefineEntity.getJavaName().toLowerCase() + "/page\")");
             classMethod.setAnnotations(methodAnnotations);
             ClassField methodParam = new ClassField();
-            methodParam.setFieldType("Page<" + javaDefineEntity.getJavaName() + "VO>");
+            methodParam.setFieldType("BasePageSearch");
             methodParam.setFieldName("page");
             methodParam.setClassFieldDescribe("分页查询条件");
             List<ClassField> paramTypes = new ArrayList<>();

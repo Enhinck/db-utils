@@ -1,11 +1,13 @@
 package com.enhinck.db.ui;
 
+import com.enhinck.db.excel.FieldTypeEnum;
 import com.enhinck.db.excel.JavaDefineEntity;
 import com.enhinck.db.excel.JavaDefineExcelReadUtil;
 import com.enhinck.db.excel.JavaFieldEntity;
 import com.enhinck.db.freemark.BaseFacotry;
 import com.enhinck.db.freemark.FreemarkUtil;
 import com.enhinck.db.freemark.mybatisplus.*;
+import com.enhinck.db.freemark.tkmapper.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,6 +20,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author HEB
@@ -164,7 +168,7 @@ public class MainFrame extends JFrame {
                         cmb.addItem("--请选择--");
                         cmb.addItem("IOC-mybatisPlus");
                         cmb.addItem("应用商店-mybatisPlus");
-                        // cmb.addItem("IOC-tkMapper");
+                         cmb.addItem("IOC-tkMapper");
                         mainpanel.add(cmb);
                         cmb.setBounds(100, 180, 250, 24);
                         //jpwdtxt2.setBounds(100, 150, 136, 24);
@@ -299,6 +303,10 @@ public class MainFrame extends JFrame {
             shopMybatisPlusGenerate(excel, packageName);
         }
 
+        if (selectIndex == 3) {
+            iocTkmapperGenerate(excel, packageName);
+        }
+
 //        // 模拟延时操作进度, 每隔 0.5 秒更新进度
 //        new Timer(50, new ActionListener() {
 //            @Override
@@ -321,6 +329,39 @@ public class MainFrame extends JFrame {
         }
 
     }
+
+    public static final String IOC_GMT_CREATE = "gmtCreate";
+    public static final String IOC_GMT_MODIFY = "gmtModify";
+
+    private void addIocDateColumn( java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities) {
+
+        javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
+            java.util.List<JavaFieldEntity> javaFieldEntityList = javaFieldEntityJavaDefineEntity.getList();
+
+            Set<String> columns = new HashSet<>();
+            javaFieldEntityList.forEach(javaFieldEntity -> columns.add(javaFieldEntity.javaFieldName()));
+
+            if (!columns.contains(IOC_GMT_CREATE)) {
+                JavaFieldEntity javaFieldEntity = new JavaFieldEntity();
+                javaFieldEntity.setName(IOC_GMT_CREATE);
+                javaFieldEntity.setDescribe("创建日期");
+                javaFieldEntity.setFieldType(FieldTypeEnum.DATE);
+                javaFieldEntityList.add(javaFieldEntity);
+            }
+            if (!columns.contains(IOC_GMT_MODIFY)) {
+                JavaFieldEntity javaFieldEntity = new JavaFieldEntity();
+                javaFieldEntity.setName(IOC_GMT_MODIFY);
+                javaFieldEntity.setDescribe("修改日期");
+                javaFieldEntity.setFieldType(FieldTypeEnum.DATE);
+                javaFieldEntityList.add(javaFieldEntity);
+            }
+
+
+
+        });
+
+    }
+
 
     private void shopMybatisPlusGenerate(String excel, String packageName) {
         BaseFacotry.isIoc = false;
@@ -402,6 +443,8 @@ public class MainFrame extends JFrame {
                 progressBar.setValue(currentProgress);
             });
 
+            addIocDateColumn(javaDefineEntities);
+
             MySQLFactory.getInstance().write(javaDefineEntities);
             currentProgress++;
             progressBar.setValue(currentProgress);
@@ -410,6 +453,52 @@ public class MainFrame extends JFrame {
             e.printStackTrace();
         }
     }
+
+
+    private void iocTkmapperGenerate(String excel, String packageName) {
+        try {
+            File excelFile = new File(excel);
+            java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities = JavaDefineExcelReadUtil.getDataFromExcel(new FileInputStream(excelFile), JavaFieldEntity.class);
+            // 设置进度的 最小值 和 最大值
+            progressBar.setMinimum(0);
+            progressBar.setMaximum(javaDefineEntities.size() * 7 + 1);
+
+            javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
+                javaFieldEntityJavaDefineEntity.setBasePackageName(packageName);
+                TkDOFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                DTOFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                VOFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                TkMapperFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                TkServiceFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                TkServiceImplFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                TkControllerFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+            });
+
+            addIocDateColumn(javaDefineEntities);
+
+            MySQLFactory.getInstance().write(javaDefineEntities);
+            currentProgress++;
+            progressBar.setValue(currentProgress);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     private void btnSelectOriginalActionPerformed(java.awt.event.ActionEvent evt) {
