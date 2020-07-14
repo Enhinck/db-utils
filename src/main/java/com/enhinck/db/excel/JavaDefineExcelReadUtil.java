@@ -98,6 +98,7 @@ public class JavaDefineExcelReadUtil {
                 javaDefineEntity.setJavaName(beanName);
                 javaDefineEntity.setTableName(tableName);
                 javaDefineEntity.setDescribe(describe);
+                processJavaBeanInfo(workbook,javaDefineEntity);
                 processCellIndexColumn(workbook, fields, colums);
 
                 int rowCount = 1;
@@ -130,6 +131,37 @@ public class JavaDefineExcelReadUtil {
             log.info("读取excel异常:{}", e);
         }
         return objects;
+    }
+
+    private static <T> void processJavaBeanInfo(Workbook workbook, JavaDefineEntity<T> javaDefineEntity) {
+        // 反射获取对应字段值
+        out:
+        for (Sheet sheet : workbook) {
+            for (Row r : sheet) {
+                int cellIndex = 0;
+                for (Cell cell : r) {
+                    String columnName = cell.getStringCellValue();
+
+                    String[] strings = columnName.split("\\(");
+
+                    String beanName = strings[0];
+
+                    String[] descTable = strings[1].split("-");
+
+                    String describe = descTable[0];
+
+                    String tableName = descTable[1].split("\\)")[0];
+                    javaDefineEntity.setJavaName(beanName);
+                    javaDefineEntity.setTableName(tableName);
+                    javaDefineEntity.setDescribe(describe);
+
+                    break out;
+                }
+
+            }
+        }
+
+
     }
 
 
