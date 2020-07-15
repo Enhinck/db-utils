@@ -163,9 +163,9 @@ public class ControllerFactory extends BaseFacotry {
             ClassMethod classMethod = new ClassMethod();
             classMethod.setMethodReturnType(responseWrapper+"<Boolean>");
             classMethod.setMethodName("update");
-            classMethod.setClassMethodDescribe("新增");
+            classMethod.setClassMethodDescribe("更新");
             List<String> methodAnnotations = new ArrayList<>();
-            methodAnnotations.add("@ApiOperation(\"新增\")");
+            methodAnnotations.add("@ApiOperation(\"更新\")");
             methodAnnotations.add("@PutMapping(\"/" + javaDefineEntity.getJavaName().toLowerCase() + "\")");
             classMethod.setAnnotations(methodAnnotations);
             ClassField methodParam = new ClassField();
