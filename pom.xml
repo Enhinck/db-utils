@@ -142,7 +142,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>db-utils</finalName>
+        <finalName>generateCodeAuto</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -154,7 +154,7 @@
                     <archive>
                         <manifest>
                             <!-- 此处指定main方法入口的class -->
-                            <mainClass>com.enhinck.db.ui.MainFrame</mainClass>
+                            <mainClass>com.enhinck.db.ui.DbMainFrame</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
