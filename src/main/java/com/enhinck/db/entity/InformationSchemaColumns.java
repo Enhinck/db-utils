@@ -20,6 +20,7 @@ public class InformationSchemaColumns {
     private String columnDefault;
     private String extra;
     private BigInteger ordinalPosition;
+    private Integer characterMaximumLength;
 
     public static final Pattern pattern = Pattern.compile("^[-\\+]?[\\d]+$");
     public static final String YES = "YES";

@@ -1,5 +1,7 @@
 package com.enhinck.db.ui;
 
+import com.enhinck.db.entity.InformationSchemaColumns;
+import com.enhinck.db.entity.InformationSchemaTables;
 import com.enhinck.db.excel.FieldTypeEnum;
 import com.enhinck.db.excel.JavaDefineEntity;
 import com.enhinck.db.excel.JavaDefineExcelReadUtil;
@@ -8,6 +10,9 @@ import com.enhinck.db.freemark.BaseFacotry;
 import com.enhinck.db.freemark.FreemarkUtil;
 import com.enhinck.db.freemark.mybatisplus.*;
 import com.enhinck.db.freemark.tkmapper.*;
+import com.enhinck.db.util.Database;
+import com.enhinck.db.util.MysqlDbUtil;
+import com.enhinck.db.util.SqlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,8 +25,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author HEB
@@ -30,26 +37,29 @@ import java.util.Set;
 public class DbMainFrame extends JFrame {
     private static final long serialVersionUID = 4380988512910634728L;
     private JPanel mainpanel;
-    private JLabel excelSelectTitle;
-    private JTextField excelSelectText;
 
-    private JButton jbtnSelectExcel;
-
-    private JTextField outputPath;
     private JLabel jlbltips;
+    //
     private JButton jbtnSelectOutPut;
 
-    private JButton jbtnCancel;
-    private JButton jbtnLogin;
-    private JLabel outputTitle;
-    private JLabel jlblpwd2;
-
-    private JLabel packageNameTitle;
+    // 生成按钮
+    private JButton jbtnCreate;
+    // 测试数据库连接按钮
+    private JButton jbtnTest;
+    private JTextField outputPath;
     private JTextField packageNameText;
 
-    private JComboBox cmb;
-    private Image backgroundImage;
+    private JTextField tableNames;
 
+    private JTextField jdbcAdress;
+
+    private JTextField jdbcUserName;
+    private JTextField jdbcPassword;
+
+    private JComboBox jComboBox;
+
+
+    private Image backgroundImage;
     // 创建一个进度条
     final JProgressBar progressBar = new JProgressBar();
 
@@ -62,9 +72,52 @@ public class DbMainFrame extends JFrame {
         setVisible(true);
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(450, 300);
+        setSize(500, 400);
         setLocation(550, 200);
     }
+
+    public static final int ROW_HIGTH = 30;
+
+    public static final int WIDTH_EMPTY = 5;
+
+    public static final int LEFT_EMPTY = 40;
+
+    public static final int TOP_EMPTY = 30;
+
+    public static final int HIGTH_EMPTY = 5;
+
+    Map<String, JTextField> textFieldHashMap = new HashMap<>();
+
+    Map<Integer, java.util.List<JComponent>> map = new HashMap<>();
+
+    /**
+     * row从0行开始
+     *
+     * @param jComponent
+     * @param row
+     */
+    public void addJComponent(JComponent jComponent, int row) {
+        java.util.List<JComponent> jComponents = map.get(row);
+        if (jComponents == null) {
+            jComponents = new ArrayList<>();
+            map.put(row, jComponents);
+        }
+        int y = TOP_EMPTY + row * ROW_HIGTH + jComponent.getHeight() + HIGTH_EMPTY * row;
+        int x = LEFT_EMPTY;
+        if (jComponents.size() != 0) {
+            for (int i = 0; i < jComponents.size(); i++) {
+                x = x + jComponents.get(i).getWidth() + WIDTH_EMPTY;
+            }
+        }
+        // 重新定位位置
+        jComponent.setBounds(x, y, jComponent.getWidth(), jComponent.getHeight());
+        mainpanel.add(jComponent);
+        jComponents.add(jComponent);
+
+        setSize(x + jComponent.getWidth() + 200, y + jComponent.getHeight() + 200);
+        mainpanel.setSize(x + jComponent.getWidth() + 150, y + jComponent.getHeight() + 200);
+    }
+
 
     private void initGUI() {
         try {
@@ -92,101 +145,99 @@ public class DbMainFrame extends JFrame {
                     mainpanel.setLayout(null);
                     mainpanel.setBounds(0, 0, 450, 300);
                     {
-                        excelSelectTitle = new JLabel();
-                        mainpanel.add(excelSelectTitle);
-                        excelSelectTitle.setText("xlsx路径:");
-                        excelSelectTitle.setBounds(41, 66, 60, 17);
-                    }
-                    {
-                        excelSelectText = new JTextField();
-                        mainpanel.add(excelSelectText);
-                        excelSelectText.setText("/Users/huenbin/代码生成模板.xlsx");
-                        excelSelectText.setBounds(100, 63, 250, 24);
-                    }
-
-                    {
-                        jbtnSelectExcel = new JButton("Select");
-                        mainpanel.add(jbtnSelectExcel);
-                        jbtnSelectExcel.setBounds(350, 63, 80, 24);
+                        JLabel title = new JLabel("数据库地址:");
+                        title.setSize(80, 20);
+                        addJComponent(title, 0);
+                        jdbcAdress = new JTextField();
+                        jdbcAdress.setText("jdbc:mysql://10.0.5.133:4461/ioc");
+                        jdbcAdress.setSize(300, 20);
+                        addJComponent(jdbcAdress, 0);
                     }
 
 
-                    //-------------------------------
-
                     {
-                        outputTitle = new JLabel();
-                        mainpanel.add(outputTitle);
-                        outputTitle.setText("output:");
-                        outputTitle.setBounds(41, 110, 46, 17);
+                        JLabel title = new JLabel("账号:");
+                        title.setSize(80, 20);
+                        addJComponent(title, 1);
+                        jdbcUserName = new JTextField();
+                        jdbcUserName.setText("ssc");
+                        jdbcUserName.setSize(250, 20);
+                        addJComponent(jdbcUserName, 1);
                     }
 
                     {
-                        outputPath = new JTextField();
-                        outputPath.setText("/Users/huenbin/java/");
-                        mainpanel.add(outputPath);
-                        outputPath.setBounds(100, 107, 250, 24);
+                        JLabel title = new JLabel("密码:");
+                        title.setSize(80, 20);
+                        addJComponent(title, 2);
+                        jdbcPassword = new JTextField();
+                        jdbcPassword.setText("Greentown@123");
+                        jdbcPassword.setSize(250, 20);
+                        addJComponent(jdbcPassword, 2);
                     }
 
                     {
+                        JLabel title = new JLabel("需要生成的表名:");
+                        title.setSize(100, 20);
+                        addJComponent(title, 3);
+                        tableNames = new JTextField();
+                        tableNames.setText("tb_event_config");
+                        tableNames.setSize(250, 20);
+                        addJComponent(tableNames, 3);
+                    }
+
+
+                    {
+                        JLabel title = new JLabel("output:");
+                        title.setSize(80, 20);
+                        addJComponent(title, 4);
+                        outputPath = new JTextField("/Users/huenbin/java/");
+                        outputPath.setSize(250, 20);
+                        addJComponent(outputPath, 4);
                         jbtnSelectOutPut = new JButton("Select");
-                        mainpanel.add(jbtnSelectOutPut);
-                        jbtnSelectOutPut.setBounds(350, 107, 80, 24);
-                    }
-                    //-------------------------------
-
-
-                    {
-                        packageNameTitle = new JLabel();
-                        mainpanel.add(packageNameTitle);
-                        packageNameTitle.setText("package:");
-                        packageNameTitle.setBounds(41, 150, 60, 17);
-                    }
-
-                    {
-                        packageNameText = new JTextField();
-                        packageNameText.setText("com.greentown.demo");
-                        mainpanel.add(packageNameText);
-                        packageNameText.setBounds(105, 147, 250, 24);
+                        jbtnSelectOutPut.setSize(80, 20);
+                        addJComponent(jbtnSelectOutPut, 4);
                     }
 
 
                     {
-                        jlblpwd2 = new JLabel();
-                        mainpanel.add(jlblpwd2);
-                        jlblpwd2.setText("框架:");
-                        jlblpwd2.setBounds(41, 180, 60, 17);
+                        JLabel title = new JLabel("package:");
+                        title.setSize(80, 20);
+                        addJComponent(title, 5);
+                        packageNameText = new JTextField("com.greentown.demo");
+                        packageNameText.setSize(250, 20);
+                        addJComponent(packageNameText, 5);
                     }
 
-                    {
-//						jpwdtxt2 = new JTextField();
-//						jpwdtxt2.setText("grid");
-//						mainpanel.add(jpwdtxt2);
 
-                        //创建JComboBox
-                        cmb = new JComboBox();
+                    {
+                        JLabel title = new JLabel("框架:");
+                        title.setSize(60, 20);
+                        addJComponent(title, 6);
+                        jComboBox = new JComboBox();
+                        jComboBox.setSize(250, 20);
                         //向下拉列表中添加一项
-                        cmb.addItem("--请选择--");
-                        cmb.addItem("IOC-mybatisPlus");
-                        cmb.addItem("应用商店-mybatisPlus");
-                         cmb.addItem("IOC-tkMapper");
-                        mainpanel.add(cmb);
-                        cmb.setBounds(100, 180, 250, 24);
-                        //jpwdtxt2.setBounds(100, 150, 136, 24);
+                        jComboBox.addItem("--请选择--");
+                        jComboBox.addItem("IOC-mybatisPlus");
+                        jComboBox.addItem("应用商店-mybatisPlus");
+                        jComboBox.addItem("IOC-tkMapper");
+                        addJComponent(jComboBox, 6);
                     }
 
 
                     {
-                        jbtnLogin = new JButton();
-                        mainpanel.add(jbtnLogin);
-                        jbtnLogin.setText("生成");
-                        jbtnLogin.setBounds(180, 210, 100, 24);
+                        JLabel title = new JLabel("");
+                        title.setSize(60, 20);
+                        addJComponent(title, 7);
+                        jbtnTest = new JButton("测试连接");
+                        jbtnTest.setSize(100, 20);
+                        addJComponent(jbtnTest, 7);
+
+                        jbtnCreate = new JButton("生成");
+                        jbtnCreate.setSize(100, 20);
+                        addJComponent(jbtnCreate, 7);
+
                     }
-//                    {
-//                        jbtnCancel = new JButton();
-//                        mainpanel.add(jbtnCancel);
-//                        jbtnCancel.setText("CREATE");
-//                        jbtnCancel.setBounds(154, 190, 100, 24);
-//                    }
+
                     {
                         jlbltips = new JLabel();
                         mainpanel.add(jlbltips);
@@ -196,9 +247,9 @@ public class DbMainFrame extends JFrame {
 
                     {
 
-                        progressBar.setBounds(70, 235, 300, 20);
 
-
+                        progressBar.setSize(300, 20);
+                        addJComponent(progressBar, 8);
                         // 设置当前进度值
                         progressBar.setValue(currentProgress);
 
@@ -214,9 +265,6 @@ public class DbMainFrame extends JFrame {
                             }
                         });
 
-                        // 添加到内容面板
-                        mainpanel.add(progressBar);
-
 
                     }
                 }
@@ -228,24 +276,31 @@ public class DbMainFrame extends JFrame {
     }
 
     private void addmyaction() {
-        jbtnLogin.addActionListener(new ActionListener() {
+        jbtnCreate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 create(evt);
             }
         });
 
-        jbtnSelectExcel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                btnSelectOriginalActionPerformed(evt);
-            }
-        });
-
+//        jbtnSelectExcel.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent evt) {
+//                btnSelectOriginalActionPerformed(evt);
+//            }
+//        });
+//
         jbtnSelectOutPut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 btnSelectFolder(evt);
+            }
+        });
+
+        jbtnTest.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                test(evt);
             }
         });
 
@@ -258,19 +313,40 @@ public class DbMainFrame extends JFrame {
 
     }
 
+    private void test(ActionEvent evt) {
+        String url = jdbcAdress.getText().trim();
+        String username = jdbcUserName.getText().trim();
+        String password = jdbcPassword.getText().trim();
+        Database database = new Database(url, username, password);
+        Connection connection = database.getConnection();
+        try {
+            if (connection != null) {
+                JOptionPane.showMessageDialog(this, "连接成功");
+            }
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void create(ActionEvent evt) {
         currentProgress = 0;
-        String excel = excelSelectText.getText().trim();
         String output = outputPath.getText().trim();
-        Integer selectIndex = cmb.getSelectedIndex();
+        Integer selectIndex = jComboBox.getSelectedIndex();
 
         String packageName = packageNameText.getText().trim();
 
+        String url = jdbcAdress.getText().trim();
+        String username = jdbcUserName.getText().trim();
+        String password = jdbcPassword.getText().trim();
 
-        if (StringUtils.isBlank(excel)) {
-            JOptionPane.showMessageDialog(this, "请选择excel");
-            return;
-        }
+
+
+//        if (StringUtils.isBlank(excel)) {
+//            JOptionPane.showMessageDialog(this, "请选择excel");
+//            return;
+//        }
         if (StringUtils.isBlank(output)) {
             JOptionPane.showMessageDialog(this, "请选择output");
             return;
@@ -293,34 +369,79 @@ public class DbMainFrame extends JFrame {
             file.mkdirs();
             log.info("已生成输出路径文件夹{}", output);
         }
-        log.info("{}-{}-{}", excel, output, selectIndex);
+        log.info("{}-{}", output, selectIndex);
+
+
+        Database database = new Database(url, username, password);
+
+        String tableName = tableNames.getText().trim();
+
+        String[] tables = tableName.split(",");
+
+        java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities = new ArrayList<>();
+
+
+        Connection connection = database.getConnection();
+        for (String table : tables) {
+            Map<String, InformationSchemaColumns> tableColumns = MysqlDbUtil.getColumnsByTableName(table, connection);
+            List<InformationSchemaTables> informationSchemaTables = MysqlDbUtil.getTables(connection, table);
+            InformationSchemaTables informationSchemaTable = informationSchemaTables.get(0);
+            String describe = informationSchemaTable.getTableComment();
+            JavaDefineEntity javaDefineEntity = new JavaDefineEntity();
+            javaDefineEntity.setTableName(table);
+            javaDefineEntity.setDescribe(describe);
+            if (table.startsWith("tb_")) {
+                table = table.substring(3);
+            }
+            String javaName = SqlUtil.toJavaName(table);
+            javaDefineEntity.setJavaName(javaName);
+
+            tableColumns.forEach((key, tableColumn) -> {
+
+                JavaFieldEntity javaFieldEntity = new JavaFieldEntity();
+                javaFieldEntity.setName(tableColumn.getColumnName());
+                javaFieldEntity.setDescribe(tableColumn.getColumnComment());
+
+                String columnType = tableColumn.getColumnType();
+                if (columnType.toLowerCase().contains("text")) {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.STRING);
+                    javaFieldEntity.setLength(1000);
+                }else  if (columnType.toLowerCase().contains("varchar")) {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.STRING);
+                    javaFieldEntity.setLength(tableColumn.getCharacterMaximumLength());
+                }else  if (columnType.toLowerCase().contains("datetime")) {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.DATE);
+                    javaFieldEntity.setLength(tableColumn.getCharacterMaximumLength());
+                }else  if (columnType.toLowerCase().contains("bigint")) {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.LONG);
+                    javaFieldEntity.setLength(tableColumn.getCharacterMaximumLength());
+                }else  if (columnType.toLowerCase().contains("int")) {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.INTEGER);
+                    javaFieldEntity.setLength(tableColumn.getCharacterMaximumLength());
+                }else  {
+                    javaFieldEntity.setFieldType(FieldTypeEnum.STRING);
+                    javaFieldEntity.setLength(tableColumn.getCharacterMaximumLength());
+                }
+                javaDefineEntity.addField(javaFieldEntity);
+
+            });
+
+            javaDefineEntities.add(javaDefineEntity);
+
+        }
 
 
         if (selectIndex == 1) {
-            iocMybatisPlusGenerate(excel, packageName);
+            iocMybatisPlusGenerate(javaDefineEntities, packageName);
         }
         if (selectIndex == 2) {
-            shopMybatisPlusGenerate(excel, packageName);
+            shopMybatisPlusGenerate(javaDefineEntities, packageName);
         }
 
         if (selectIndex == 3) {
-            iocTkmapperGenerate(excel, packageName);
+            iocTkmapperGenerate(javaDefineEntities, packageName);
         }
 
-//        // 模拟延时操作进度, 每隔 0.5 秒更新进度
-//        new Timer(50, new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//
-//                if (currentProgress >= 100) {
-//                    //currentProgress = 0;
-//                    //  progressBar.setString("生成完成");
-//                } else {
-//                    currentProgress++;
-//                    progressBar.setValue(currentProgress);
-//                }
-//            }
-//        }).start();
         try {
 
 
@@ -333,7 +454,7 @@ public class DbMainFrame extends JFrame {
     public static final String IOC_GMT_CREATE = "gmtCreate";
     public static final String IOC_GMT_MODIFY = "gmtModify";
 
-    private void addIocDateColumn( java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities) {
+    private void addIocDateColumn(java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities) {
 
         javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
             java.util.List<JavaFieldEntity> javaFieldEntityList = javaFieldEntityJavaDefineEntity.getList();
@@ -357,21 +478,19 @@ public class DbMainFrame extends JFrame {
             }
 
 
-
         });
 
     }
 
 
-    private void shopMybatisPlusGenerate(String excel, String packageName) {
+    private void shopMybatisPlusGenerate(java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities, String packageName) {
         BaseFacotry.isIoc = false;
 
         try {
-            File excelFile = new File(excel);
-            java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities = JavaDefineExcelReadUtil.getDataFromExcel(new FileInputStream(excelFile), JavaFieldEntity.class);
+
             // 设置进度的 最小值 和 最大值
             progressBar.setMinimum(0);
-            progressBar.setMaximum(javaDefineEntities.size() * 7 + 1);
+            progressBar.setMaximum(javaDefineEntities.size() * 7);
 
             javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
                 javaFieldEntityJavaDefineEntity.setBasePackageName(packageName);
@@ -398,11 +517,8 @@ public class DbMainFrame extends JFrame {
                 progressBar.setValue(currentProgress);
             });
 
-            MySQLFactory.getInstance().write(javaDefineEntities);
-            currentProgress++;
-            progressBar.setValue(currentProgress);
 
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -410,13 +526,11 @@ public class DbMainFrame extends JFrame {
     }
 
 
-    private void iocMybatisPlusGenerate(String excel, String packageName) {
+    private void iocMybatisPlusGenerate(java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities, String packageName) {
         try {
-            File excelFile = new File(excel);
-            java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities = JavaDefineExcelReadUtil.getDataFromExcel(new FileInputStream(excelFile), JavaFieldEntity.class);
             // 设置进度的 最小值 和 最大值
             progressBar.setMinimum(0);
-            progressBar.setMaximum(javaDefineEntities.size() * 7 + 1);
+            progressBar.setMaximum(javaDefineEntities.size() * 7 );
 
             javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
                 javaFieldEntityJavaDefineEntity.setBasePackageName(packageName);
@@ -445,23 +559,18 @@ public class DbMainFrame extends JFrame {
 
             addIocDateColumn(javaDefineEntities);
 
-            MySQLFactory.getInstance().write(javaDefineEntities);
-            currentProgress++;
-            progressBar.setValue(currentProgress);
 
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    private void iocTkmapperGenerate(String excel, String packageName) {
+    private void iocTkmapperGenerate(java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities, String packageName) {
         try {
-            File excelFile = new File(excel);
-            java.util.List<JavaDefineEntity<JavaFieldEntity>> javaDefineEntities = JavaDefineExcelReadUtil.getDataFromExcel(new FileInputStream(excelFile), JavaFieldEntity.class);
             // 设置进度的 最小值 和 最大值
             progressBar.setMinimum(0);
-            progressBar.setMaximum(javaDefineEntities.size() * 7 + 1);
+            progressBar.setMaximum(javaDefineEntities.size() * 9 );
 
             javaDefineEntities.forEach(javaFieldEntityJavaDefineEntity -> {
                 javaFieldEntityJavaDefineEntity.setBasePackageName(packageName);
@@ -486,41 +595,22 @@ public class DbMainFrame extends JFrame {
                 TkControllerFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
                 currentProgress++;
                 progressBar.setValue(currentProgress);
+
+                QueryDTOFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
+                QueryVOFactory.getInstance().write(javaFieldEntityJavaDefineEntity);
+                currentProgress++;
+                progressBar.setValue(currentProgress);
             });
 
             addIocDateColumn(javaDefineEntities);
 
-            MySQLFactory.getInstance().write(javaDefineEntities);
-            currentProgress++;
-            progressBar.setValue(currentProgress);
-
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
-
-    private void btnSelectOriginalActionPerformed(ActionEvent evt) {
-        JFileChooser fileChooser = new JFileChooser();  //对话框
-        fileChooser.setCurrentDirectory(new File(""));//设置当前目录
-        fileChooser.setAcceptAllFileFilterUsed(false); //禁用选择 所有文件
-        fileChooser.setMultiSelectionEnabled(false);
-        ExampleFileFilter filter = new ExampleFileFilter(); //选择文件过滤器
-        filter.addExtension("xlsx");
-        filter.addExtension("xls");
-        filter.setDescription("请选择文档");
-        fileChooser.setFileFilter(filter);
-
-        int returnVal = fileChooser.showOpenDialog(getContentPane());  //opendialog
-        if (returnVal == JFileChooser.APPROVE_OPTION)  //判断是否为打开的按钮
-        {
-            File selectedFile = fileChooser.getSelectedFile();  //取得选中的文件
-            log.info(selectedFile.getPath());
-
-            excelSelectText.setText(selectedFile.getPath());
-        }
-    }
 
     private void btnSelectFolder(ActionEvent evt) {
         JFileChooser fileChooser = new JFileChooser();  //对话框

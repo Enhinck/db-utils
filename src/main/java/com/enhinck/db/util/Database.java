@@ -17,9 +17,18 @@ public class Database {
     private String username;
     private String password;
 
+    public Database(){}
     public Database(String driver, String url, String username, String password) {
         super();
         this.driver = driver;
+        this.url = url;
+        this.username = username;
+        this.password = password;
+    }
+
+    public Database(String url, String username, String password) {
+        super();
+        this.driver = MYSQL_DRIVER;
         this.url = url;
         this.username = username;
         this.password = password;

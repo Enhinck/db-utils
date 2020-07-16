@@ -172,6 +172,11 @@ public class SqlUtil {
         return sb.toString();
     }
 
+    public static String toJavaName(String str) {
+        String name = underScoreCaseToCamelCase(str);
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
     /**
      * 驼峰转下划线
      */
@@ -190,7 +195,7 @@ public class SqlUtil {
      */
     public static String firstToLowerCase(String str) {
         StringBuffer sb = new StringBuffer();
-        sb.append(str.substring(0,1).toLowerCase()).append(str.substring(1,str.length()));
+        sb.append(str.substring(0, 1).toLowerCase()).append(str.substring(1, str.length()));
         return sb.toString();
     }
 

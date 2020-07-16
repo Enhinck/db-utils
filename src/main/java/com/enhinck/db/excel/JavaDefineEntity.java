@@ -83,6 +83,10 @@ public class JavaDefineEntity<T> {
     public String getDTOReference(){
         return getDTOPackageName() + "." +  BaseFacotry.getDTOName(this);
     }
+
+    public String getQueryDTOReference(){
+        return getDTOPackageName() + "." +  BaseFacotry.getQueryDTOName(this);
+    }
     public String getVOReference(){
         return getVOPackageName() + "." +  BaseFacotry.getVOName(this);
     }
@@ -126,5 +130,9 @@ public class JavaDefineEntity<T> {
 
     public String getMapperPackageName() {
         return basePackageName + ".mapper";
+    }
+
+    public String getQueryVOReference() {
+        return getVOPackageName() + "." +  BaseFacotry.getQueryVOName(this);
     }
 }

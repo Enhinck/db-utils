@@ -48,6 +48,7 @@ public class BaseFacotry {
     protected Set<String> commonPOJOImports() {
         Set<String> imports = new HashSet<>();
         imports.add("lombok.*");
+        imports.add("java.util.Date");
         return imports;
     }
 
@@ -110,7 +111,13 @@ public class BaseFacotry {
     public static String getDTOName(JavaDefineEntity javaDefineEntity) {
         return javaDefineEntity.getJavaName() + "DTO";
     }
+    public static String getQueryDTOName(JavaDefineEntity javaDefineEntity) {
+        return javaDefineEntity.getJavaName() + "QueryDTO";
+    }
 
+    public static String getQueryVOName(JavaDefineEntity javaDefineEntity) {
+        return javaDefineEntity.getJavaName() + "QueryVO";
+    }
     public static String getVOName(JavaDefineEntity javaDefineEntity) {
         return javaDefineEntity.getJavaName() + "VO";
     }

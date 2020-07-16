@@ -53,8 +53,13 @@ public class TkControllerFactory extends BaseFacotry {
         importList.add("com.greentown.common.response.WebResponseEntity");
         importList.add("com.greentown.common.model.page.BasePageSearch");
         importList.add("com.greentown.common.model.page.PageBean");
-
+        importList.add("com.greentown.common.util.DataTransformer");
+        importList.add(javaDefineEntity.getQueryDTOReference());
+        importList.add(javaDefineEntity.getQueryVOReference());
+        importList.add(javaDefineEntity.getDTOReference());
         importList.addAll(javaDefineEntity.getControllerImports());
+
+
 
         javaClassEntity.setImportList(importList);
         importList.addAll(javaDefineEntity.getControllerImports());
@@ -190,6 +195,29 @@ public class TkControllerFactory extends BaseFacotry {
             classMethod.setMethodParamTypes(paramTypes);
             List<String> codes = new ArrayList<>();
             codes.add("return WebResponseEntity.ok(" + serviceName + ".removeById(id));");
+            classMethod.setCodes(codes);
+            classMethods.add(classMethod);
+        }
+
+
+        {
+            ClassMethod classMethod = new ClassMethod();
+            classMethod.setMethodReturnType("WebResponseEntity<PageBean<"+javaDefineEntity.getJavaName() + "VO>>");
+            classMethod.setMethodName("page");
+            classMethod.setClassMethodDescribe("高级分页查询");
+            List<String> methodAnnotations = new ArrayList<>();
+            methodAnnotations.add("@ApiOperation(\"高级分页查询\")");
+            methodAnnotations.add("@GetMapping(\"/" + javaDefineEntity.getJavaName().toLowerCase() + "/page\")");
+            classMethod.setAnnotations(methodAnnotations);
+            ClassField methodParam = new ClassField();
+            methodParam.setFieldType(javaDefineEntity.getJavaName()+"QueryVO");
+            methodParam.setFieldName("queryVO");
+            List<ClassField> paramTypes = new ArrayList<>();
+            paramTypes.add(methodParam);
+            classMethod.setMethodParamTypes(paramTypes);
+            List<String> codes = new ArrayList<>();
+            codes.add("PageBean<"+javaDefineEntity.getJavaName()+"DTO> pageBean = "+serviceName+".selectPage(DataTransformer.transform(queryVO, "+javaDefineEntity.getJavaName()+"QueryDTO.class));");
+            codes.add("return WebResponseEntity.ok(DataTransformer.transformPageBean(pageBean, "+javaDefineEntity.getJavaName()+"VO.class));");
             classMethod.setCodes(codes);
             classMethods.add(classMethod);
         }

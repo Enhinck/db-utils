@@ -2,10 +2,7 @@ package com.enhinck.db.freemark.tkmapper;
 
 import com.enhinck.db.excel.JavaDefineEntity;
 import com.enhinck.db.excel.JavaFieldEntity;
-import com.enhinck.db.freemark.BaseFacotry;
-import com.enhinck.db.freemark.ClassGenerics;
-import com.enhinck.db.freemark.FreemarkUtil;
-import com.enhinck.db.freemark.JavaClassEntity;
+import com.enhinck.db.freemark.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,10 +43,28 @@ public class TkServiceFactory extends BaseFacotry {
         Set<String> importList = new HashSet<>();
         importList.add("com.greentown.tkmapper.service.ITkService");
 
+        importList.add("com.greentown.common.model.page.PageBean");
         importList.addAll(javaDefineEntity.getServiceImports());
-
+        importList.add(javaDefineEntity.getQueryDTOReference());
         javaClassEntity.setImportList(importList);
         javaClassEntity.setPackagePath(javaDefineEntity.getServicePackageName());
+
+        List<ClassMethod> classMethods = new ArrayList<>();
+        javaClassEntity.setMethods(classMethods);
+        {
+            ClassMethod classMethod = new ClassMethod();
+            classMethod.setClassMethodDescribe("组合分页查询");
+            classMethod.setMethodReturnType("PageBean<" + javaDefineEntity.getJavaName() + "DTO>");
+            classMethod.setMethodName("selectPage");
+            classMethods.add(classMethod);
+            ClassField methodParam = new ClassField();
+            methodParam.setFieldType(javaDefineEntity.getJavaName() + "QueryDTO");
+            methodParam.setFieldName("queryDTO");
+            methodParam.setClassFieldDescribe("查询对象");
+            List<ClassField> paramTypes = new ArrayList<>();
+            paramTypes.add(methodParam);
+            classMethod.setMethodParamTypes(paramTypes);
+        }
 
 
         return javaClassEntity;
